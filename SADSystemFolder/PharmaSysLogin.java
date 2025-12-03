@@ -1,6 +1,3 @@
-import javax.swing.*;
-import javax.swing.border.EmptyBorder;
-import javax.swing.border.LineBorder;
 import java.awt.*;
 import java.awt.event.FocusAdapter;
 import java.awt.event.FocusEvent;
@@ -9,10 +6,12 @@ import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.font.TextAttribute;
+import java.awt.geom.RoundRectangle2D;
 import java.util.HashMap;
 import java.util.Map;
+import javax.swing.*;
 import javax.swing.border.AbstractBorder;
-import java.awt.geom.RoundRectangle2D;
+import javax.swing.border.EmptyBorder;
 
 public class PharmaSysLogin extends JFrame {
 
@@ -97,6 +96,11 @@ public class PharmaSysLogin extends JFrame {
 
         usernameField = new JTextField();
         styleField(usernameField, fieldBorder);
+        usernameField.setBorder(BorderFactory.createCompoundBorder(
+        new RoundedBorder(18, fieldBorder),
+        new EmptyBorder(5, 8, 5, 8)
+        ));
+
 
         // placeholder behavior: only remove when user types (not on focus)
         final String placeholder = "  Enter your username";
@@ -153,7 +157,6 @@ public class PharmaSysLogin extends JFrame {
         passRow.setOpaque(false);
         passRow.setMaximumSize(new Dimension(400, 35));
         passRow.setPreferredSize(new Dimension(400, 35));
-
         passRow.setBorder(BorderFactory.createCompoundBorder(
                 new RoundedBorder(18, fieldBorder),
                 new EmptyBorder(5, 8, 5, 8)
@@ -189,7 +192,7 @@ public class PharmaSysLogin extends JFrame {
             }
         });
 
-        // ✅ Restore placeholder when empty on focus loss
+        // ✅ Restore placeholder when empty on focus loss   
         passwordField.addFocusListener(new FocusAdapter() {
             @Override
             public void focusLost(FocusEvent e) {
@@ -352,11 +355,34 @@ public class PharmaSysLogin extends JFrame {
         card.add(Box.createVerticalStrut(20));
 
         // --- LOGIN ACTION (Open Dashboard) ---
-        loginBtn.addActionListener(e -> {
-            new PharmaSysDashboard().setVisible(true);
-            dispose();
-        });
+         loginBtn.addActionListener(e -> {
 
+         String username = usernameField.getText().trim();
+         String password = new String(passwordField.getPassword());
+
+         // If placeholders are still visible, treat them as empty
+         if (username.equals("Enter your username"));
+         if (password.equals("Enter your password"));
+         
+         String validUser = "admin";
+         String validPass = "1234";
+
+         if (username.equals(validUser) && password.equals(validPass)) {
+
+         JOptionPane.showMessageDialog(this, "Login Successful!");
+
+         new PharmaSysDashboard().setVisible(true);
+         dispose();
+
+         } else {
+         JOptionPane.showMessageDialog(this,
+                "Invalid username or password!",
+                "Login Failed",
+                JOptionPane.ERROR_MESSAGE);
+         }
+         });
+
+   
         // --- CREATE ACCOUNT TEXT (SEPARATE COLORS) ---
         JPanel createRow = new JPanel(new FlowLayout(FlowLayout.CENTER, 3, 0));
         createRow.setOpaque(false);
@@ -373,6 +399,13 @@ public class PharmaSysLogin extends JFrame {
 
         createRow.add(noAcc);
         createRow.add(createAcc);
+        createAcc.addMouseListener(new MouseAdapter() {
+        @Override
+        public void mouseClicked(MouseEvent e) {
+        new PharmaSysRegister().setVisible(true);
+        }
+        });
+
 
         card.add(createRow);
 
