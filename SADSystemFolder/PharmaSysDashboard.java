@@ -1,4 +1,7 @@
+package SAD;
+
 import javax.swing.*;
+import javax.swing.border.CompoundBorder;
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.LineBorder;
 import javax.swing.table.DefaultTableCellRenderer;
@@ -98,7 +101,7 @@ public class PharmaSysDashboard extends JFrame {
         // Search bar — GUARANTEED WORKING PLACEHOLDER ✅
         JTextField search = new JTextField();
         search.setBorder(new EmptyBorder(5,20,5,10));
-        search.setPreferredSize(new Dimension(450,30));
+        search.setPreferredSize(new Dimension(480,40));
 
         String placeholder = "Search for anything here...";
         search.setText(placeholder);
@@ -203,7 +206,7 @@ public class PharmaSysDashboard extends JFrame {
         //------------------------------ STAT CARDS ------------------------------//
         JPanel statRow = new JPanel(new GridLayout(1,4,15,15));
         statRow.setOpaque(false);
-        statRow.setBorder(new EmptyBorder(15,0,15,0));
+        statRow.setBorder(new EmptyBorder(10,0,5,0));
 
         statRow.add(statCard("Total Sales","₱245,680","+12.5%"));
         statRow.add(statCard("Total Medicine","1,234","+5.2%"));
@@ -212,35 +215,57 @@ public class PharmaSysDashboard extends JFrame {
 
 
         //------------------------------ MID PANELS ------------------------------//
-        JPanel midRow = new JPanel(new GridLayout(1,2,20,20));
+        JPanel midRow = new JPanel();
         midRow.setOpaque(false);
+        midRow.setLayout(new BoxLayout(midRow, BoxLayout.X_AXIS));
 
-        JPanel expiring = listPanel("Expiring Soon",
+        JPanel expiringSoonPanel = listPanelExpiring(
+                "Expiring Soon",
                 new String[][]{
-                        {"Amoxicillin 500mg","Stock: 150","17 days left"},
-                        {"Paracetamol 500mg","Stock: 300","17 days left"},
-                        {"Ibuprofen 200mg","Stock: 200","33 days left"},
-                        {"Cetirizine 10mg","Stock: 200","42 days left"}
-                });
+                        {"Amoxicillin 500mg", "Batch: BT001", "17 days left", "Stock: 150"},
+                        {"Paracetamol 500mg", "Batch: BT045", "17 days left", "Stock: 300"},
+                        {"Ibuprofen 200mg", "Batch: BT078", "33 days left", "Stock: 200"},
+                        {"Cetirizine 10mg", "Batch: BT092", "42 days left", "Stock: 200"}
+                }
+        );
 
-        JPanel lowStock = listPanel("Low Stock Alert",
+        expiringSoonPanel.setPreferredSize(new Dimension(500, 310));
+
+        JPanel lowStockPanel = listPanelLowStock(
+                "Low Stock Alert",
                 new String[][]{
-                        {"Metformin 500mg","Critical","30%"},
-                        {"Losartan 50mg","Low","56%"},
-                        {"Atorvastatin 20mg","Low","70%"},
-                        {"Omeprazole 20mg","Critical","24%"}
-                });
+                        {"Metformin 500mg", "Batch: BT015", "Critical", "30%"},
+                        {"Losartan 50mg", "Batch: BT028", "Low", "56%"},
+                        {"Atorvastatin 20mg", "Batch: BT035", "Low", "70%"},
+                        {"Omeprazole 20mg", "Batch: BT012", "Critical", "24%"}
+                }
+        );
 
-        midRow.add(expiring);
-        midRow.add(lowStock);
+        lowStockPanel.setPreferredSize(new Dimension(500, 310));
 
+
+        JPanel leftWrap = new JPanel(new BorderLayout());
+        leftWrap.setOpaque(false);
+        leftWrap.setMaximumSize(new Dimension(Integer.MAX_VALUE, 310));
+        leftWrap.add(expiringSoonPanel);
+
+        JPanel rightWrap = new JPanel(new BorderLayout());
+        rightWrap.setOpaque(false);
+        rightWrap.setMaximumSize(new Dimension(Integer.MAX_VALUE, 310));
+        rightWrap.add(lowStockPanel);
+
+        midRow.add(leftWrap);
+        midRow.add(Box.createHorizontalStrut(20));
+        midRow.add(rightWrap);
 
         //------------------------------ TABLE ------------------------------//
         JPanel tableCard = new JPanel(new BorderLayout());
         tableCard.setBackground(Color.WHITE);
 
         // card spacing like screenshot
-        tableCard.setBorder(new EmptyBorder(15,15,15,15));
+        tableCard.setBorder(new EmptyBorder(8,15,15,15));
+        tableCard.setPreferredSize(new Dimension(1000, 350));
+        tableCard.setMaximumSize(new Dimension(Integer.MAX_VALUE, 350));
 
         // title
         JLabel tTitle = new JLabel("Recent Transactions");
@@ -294,8 +319,10 @@ public class PharmaSysDashboard extends JFrame {
 
         body.add(statRow);
         body.add(midRow);
-        body.add(Box.createVerticalStrut(20));
+        body.add(Box.createVerticalStrut(6));
+        tableCard.setMaximumSize(new Dimension(Integer.MAX_VALUE, Integer.MAX_VALUE));
         body.add(tableCard);
+
 
         pageContainer.add(body, "Dashboard");
         content.add(pageContainer, BorderLayout.CENTER);
@@ -306,16 +333,7 @@ public class PharmaSysDashboard extends JFrame {
         pageContainer.add(new PharmaSysInventory(), "Inventory");
 
         // SALES
-        JPanel salesPage = new JPanel(new BorderLayout());
-        salesPage.setOpaque(false);
-        salesPage.add(
-            pageHeader(
-                "Sales",
-                "Process customer transactions and manage sales"
-            ),
-            BorderLayout.NORTH
-        );
-        pageContainer.add(salesPage, "Sales");
+        pageContainer.add(new PharmaSysSales(), "Sales");
 
         // REPORTS
         JPanel reportsPage = new JPanel(new BorderLayout());
@@ -346,7 +364,112 @@ public class PharmaSysDashboard extends JFrame {
 
     }
 
-        private JPanel sideBtn(String name, boolean active){
+    private JPanel listPanelLowStock(String title, String[][] rows) {
+
+    JPanel p = new JPanel() {
+        @Override
+        protected void paintComponent(Graphics g) {
+            super.paintComponent(g);
+            Graphics2D g2 = (Graphics2D) g;
+            g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+
+            g2.setColor(Color.WHITE);
+            g2.fillRoundRect(0, 0, getWidth(), getHeight(), 20, 15);
+
+            g2.setColor(new Color(210,210,210));
+            g2.drawRoundRect(0, 0, getWidth()-1, getHeight()-1, 20, 15);
+        }
+    };
+
+    p.setLayout(new BorderLayout());
+    p.setOpaque(false);
+    p.setBorder(new EmptyBorder(10, 15, 15, 15));
+
+    // ---------- TITLE ----------
+    JLabel t = new JLabel(title);
+    t.setFont(new Font("Segoe UI", Font.BOLD, 12));
+    t.setBorder(BorderFactory.createMatteBorder(0, 0, 1, 0, new Color(220,220,220)));
+    t.setBorder(new CompoundBorder(
+            t.getBorder(),
+            new EmptyBorder(0,0,8,0)
+    ));
+
+    p.add(t, BorderLayout.NORTH);
+
+
+    // ---------- LIST ----------
+    JPanel list = new JPanel();
+    list.setOpaque(false);
+    list.setLayout(new BoxLayout(list, BoxLayout.Y_AXIS));
+    list.setBorder(new EmptyBorder(10, 0, 0, 0));
+
+    for (String[] r : rows) {
+
+        // EXPECTED FORMAT:
+        // r[0] = medicine name
+        // r[1] = batch
+        // r[2] = status ("Critical" / "Low")
+        // r[3] = percentage (ex: "30%")
+
+        JPanel row = new JPanel(new BorderLayout());
+        row.setOpaque(false);
+
+        // LEFT SIDE --------------------------
+        JPanel left = new JPanel();
+        left.setOpaque(false);
+        left.setLayout(new BoxLayout(left, BoxLayout.Y_AXIS));
+
+        JLabel name = new JLabel(r[0]);
+        name.setFont(new Font("Segoe UI", Font.BOLD, 13));
+
+        JLabel batch = new JLabel(r[1]); 
+        batch.setFont(new Font("Segoe UI", Font.PLAIN, 11));
+        batch.setForeground(new Color(70,70,70));
+
+        left.add(name);
+        left.add(batch);
+
+        // RIGHT SIDE --------------------------
+        JPanel right = new JPanel();
+        right.setOpaque(false);
+        right.setLayout(new BoxLayout(right, BoxLayout.Y_AXIS));
+
+        JLabel status = new JLabel(r[2]);
+        status.setFont(new Font("Segoe UI", Font.BOLD, 11));
+
+        // color rules
+        if (r[2].equalsIgnoreCase("Critical")) {
+            status.setForeground(new Color(200, 0, 0)); // red
+        } else if (r[2].equalsIgnoreCase("Low")) {
+            status.setForeground(new Color(255, 140, 0)); // orange
+        } else {
+            status.setForeground(Color.DARK_GRAY);
+        }
+
+        status.setAlignmentX(Component.RIGHT_ALIGNMENT);
+
+        JLabel percent = new JLabel(r[3]);
+        percent.setFont(new Font("Segoe UI", Font.PLAIN, 11));
+        percent.setForeground(Color.DARK_GRAY);
+        percent.setAlignmentX(Component.RIGHT_ALIGNMENT);
+
+        right.add(status);
+        right.add(percent);
+
+        row.add(left, BorderLayout.WEST);
+        row.add(right, BorderLayout.EAST);
+
+        list.add(row);
+        list.add(Box.createVerticalStrut(10));
+    }
+
+    p.add(list, BorderLayout.CENTER);
+
+    return p;
+}
+
+
+    private JPanel sideBtn(String name, boolean active){
 
         final boolean[] pressed = { false };
 
@@ -490,36 +613,28 @@ public class PharmaSysDashboard extends JFrame {
         pc.setForeground(Color.GRAY);
 
         // ---------- VALUE + PERCENT ROW ----------
-        JPanel valueRow = new JPanel(new BorderLayout());
-        valueRow.setOpaque(false);
-
-        // CENTER VALUE (true center)
-        v.setHorizontalAlignment(SwingConstants.CENTER);
-        valueRow.add(v, BorderLayout.CENTER);
-
-        // RIGHT PERCENT (locks right side)
+        JPanel percentRow = new JPanel(new BorderLayout());
+        percentRow.setOpaque(false);
         pc.setHorizontalAlignment(SwingConstants.RIGHT);
-        valueRow.add(pc, BorderLayout.EAST);
+        percentRow.add(pc, BorderLayout.EAST);
 
-        // FORCE FULL WIDTH
-        valueRow.setMaximumSize(
-            new Dimension(Integer.MAX_VALUE, v.getPreferredSize().height)
-        );
-        valueRow.setAlignmentX(Component.CENTER_ALIGNMENT);
+        // ---------- CENTER VALUE ----------
+        v.setHorizontalAlignment(SwingConstants.CENTER);
+        v.setAlignmentX(Component.CENTER_ALIGNMENT);
 
-
-        // ---------- CENTER STACK ----------
         JPanel center = new JPanel();
         center.setOpaque(false);
         center.setLayout(new BoxLayout(center, BoxLayout.Y_AXIS));
 
         t.setAlignmentX(Component.CENTER_ALIGNMENT);
-        valueRow.setAlignmentX(Component.CENTER_ALIGNMENT);
 
         center.add(t);
-        center.add(Box.createVerticalStrut(5));
-        center.add(Box.createHorizontalStrut(50));
-        center.add(valueRow);
+        center.add(Box.createVerticalStrut(6));
+
+        center.add(v);              
+        center.add(Box.createVerticalStrut(4));
+
+        center.add(percentRow);    
 
         // ---------- APPLY ----------
         p.add(topRow, BorderLayout.NORTH);
@@ -528,87 +643,99 @@ public class PharmaSysDashboard extends JFrame {
         return p;
     }
 
-    private JPanel listPanel(String title, String[][] rows) {
+  private JPanel listPanelExpiring(String title, String[][] rows) {
 
-        JPanel p = new JPanel(new BorderLayout());
-        p.setBackground(Color.WHITE);
-        p.setBorder(new LineBorder(new Color(200,200,200)));
+    JPanel p = new JPanel() {
+        @Override
+        protected void paintComponent(Graphics g) {
+            super.paintComponent(g);
+            Graphics2D g2 = (Graphics2D) g;
+            g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
-        JLabel t = new JLabel(title);
-        t.setFont(titleFont);
-        t.setFont(new Font("Segoe UI", Font.BOLD, 12));
-        t.setBorder(
-            BorderFactory.createCompoundBorder(
-                new EmptyBorder(10,10,15,10),   // increase bottom spacing → underline moves DOWN (farther)
-                BorderFactory.createMatteBorder(0,0,1,0,new Color(120,120,120))
-            )
-        );
+            g2.setColor(Color.WHITE);
+            g2.fillRoundRect(0, 0, getWidth(), getHeight(), 20, 15);
 
-        p.add(t,BorderLayout.NORTH);
-
-        JPanel list = new JPanel();
-        list.setLayout(new BoxLayout(list,BoxLayout.Y_AXIS));
-        list.setOpaque(false);
-        list.setBorder(new EmptyBorder(5,10,10,10));
-
-        for(String[] r : rows){
-
-            // outer 2-column row
-            JPanel row = new JPanel(new BorderLayout());
-            row.setOpaque(false);
-
-            // LEFT STACK (name + stock/batch info)
-            JPanel leftCol = new JPanel();
-            leftCol.setLayout(new BoxLayout(leftCol, BoxLayout.Y_AXIS));
-            leftCol.setOpaque(false);
-
-            JLabel name = new JLabel(r[0]);
-            name.setFont(new Font("Segoe UI", Font.BOLD, 13));
-
-            JLabel detail = new JLabel(r[1]);
-            detail.setFont(new Font("Segoe UI", Font.PLAIN, 12));
-            detail.setForeground(Color.DARK_GRAY);
-
-            leftCol.add(name);
-            leftCol.add(detail);
-
-            // RIGHT STACK (status/percent or days)
-            JPanel rightCol = new JPanel();
-            rightCol.setLayout(new BoxLayout(rightCol, BoxLayout.Y_AXIS));
-            rightCol.setOpaque(false);
-
-            JLabel stat = new JLabel(r[2], SwingConstants.RIGHT);
-            stat.setFont(new Font("Segoe UI", Font.PLAIN, 12));
-
-            stat.setAlignmentX(Component.RIGHT_ALIGNMENT);
-
-            rightCol.add(stat);
-
-            // position columns
-            row.add(leftCol, BorderLayout.WEST);
-            row.add(rightCol, BorderLayout.EAST);
-
-            list.add(row);
-            list.add(Box.createVerticalStrut(10));
+            g2.setColor(new Color(210,210,210));
+            g2.drawRoundRect(0, 0, getWidth()-1, getHeight()-1, 20, 15);
         }
+    };
 
-        p.add(list,BorderLayout.CENTER);
-        return p;
+    p.setLayout(new BorderLayout());
+    p.setOpaque(false);
+    p.setBorder(new EmptyBorder(10, 15, 15, 15));
+
+    // ---------- TITLE ----------
+    JLabel t = new JLabel(title);
+    t.setFont(new Font("Segoe UI", Font.BOLD, 12));
+    t.setBorder(BorderFactory.createMatteBorder(0, 0, 1, 0, new Color(220,220,220)));
+    t.setBorder(new CompoundBorder(
+            t.getBorder(),
+            new EmptyBorder(0,0,8,0)
+    ));
+
+    p.add(t, BorderLayout.NORTH);
+
+
+    // ---------- LIST ----------
+    JPanel list = new JPanel();
+    list.setOpaque(false);
+    list.setLayout(new BoxLayout(list, BoxLayout.Y_AXIS));
+    list.setBorder(new EmptyBorder(10, 0, 0, 0));
+
+    for (String[] r : rows) {
+
+        // EXPECTED FORMAT FOR EXPIRES SOON:
+        // r[0] = medicine name
+        // r[1] = batch   (ex: "Batch: BT001")
+        // r[2] = days left (ex: "17 days left")
+        // r[3] = stock (ex: "Stock: 150")
+
+        JPanel row = new JPanel(new BorderLayout());
+        row.setOpaque(false);
+
+        // LEFT SIDE  ----------------------
+        JPanel left = new JPanel();
+        left.setOpaque(false);
+        left.setLayout(new BoxLayout(left, BoxLayout.Y_AXIS));
+
+        JLabel name = new JLabel(r[0]);
+        name.setFont(new Font("Segoe UI", Font.BOLD, 13));
+
+        JLabel batch = new JLabel(r[1]);  // now correct
+        batch.setFont(new Font("Segoe UI", Font.PLAIN, 11));
+        batch.setForeground(new Color(70,70,70));
+
+        JLabel days = new JLabel(r[2]);  // days left
+        days.setFont(new Font("Segoe UI", Font.PLAIN, 11));
+        days.setForeground(new Color(70,70,70));
+
+        left.add(name);
+        left.add(batch);
+        left.add(days);
+
+        // RIGHT SIDE (Stock only) ----------------------
+        JPanel right = new JPanel();
+        right.setOpaque(false);
+        right.setLayout(new BoxLayout(right, BoxLayout.Y_AXIS));
+
+        JLabel stock = new JLabel(r[3]);
+        stock.setFont(new Font("Segoe UI", Font.BOLD, 12));
+        stock.setForeground(Color.BLACK);
+        stock.setAlignmentX(Component.RIGHT_ALIGNMENT);
+
+        right.add(stock);
+
+        row.add(left, BorderLayout.WEST);
+        row.add(right, BorderLayout.EAST);
+
+        list.add(row);
+        list.add(Box.createVerticalStrut(18));
     }
 
-    // ✅ SIMPLE PLACEHOLDER PAGE
-    private JPanel createPage(String title) {
+    p.add(list, BorderLayout.CENTER);
 
-        JPanel p = new JPanel(new GridBagLayout());
-        p.setBackground(Color.WHITE);
-
-        JLabel lbl = new JLabel(title);
-        lbl.setFont(new Font("Segoe UI", Font.BOLD, 28));
-
-        p.add(lbl);
-
-        return p;
-    }
+    return p;
+}
 
         private JPanel pageHeader(String title, String subtitle) {
 
