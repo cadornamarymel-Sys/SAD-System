@@ -13,7 +13,7 @@ public class PharmaSysInventory extends JPanel {
 
         setLayout(new BorderLayout());
         setBackground(new Color(208,217,232));
-        setBorder(new EmptyBorder(0,0,15,5));
+        setBorder(new EmptyBorder(0,0,0,0));
 
         //---------------- HEADER (INVENTORY FRAME ONLY) ----------------//
         JPanel header = new JPanel();
@@ -124,9 +124,9 @@ public class PharmaSysInventory extends JPanel {
         };
 
         JTable table = new JTable(new DefaultTableModel(rows, cols));
-        table.setRowHeight(76);
+        table.setRowHeight(80);
         table.setShowGrid(false);
-        table.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+        table.setFont(new Font("Segoe UI", Font.PLAIN, 13));
 
         DefaultTableCellRenderer center = new DefaultTableCellRenderer();
         center.setHorizontalAlignment(SwingConstants.CENTER);
