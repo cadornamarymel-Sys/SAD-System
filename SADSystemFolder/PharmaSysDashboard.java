@@ -1,5 +1,3 @@
-//wapani mahuman hehehehehe
-
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.LineBorder;
@@ -20,9 +18,7 @@ public class PharmaSysDashboard extends JFrame {
 
     private JPanel pageContainer;
     private CardLayout cardLayout;
-
-    private JLabel dashboardLbl;   // to change page title
-
+    private JLabel dashboardLbl;
 
     public PharmaSysDashboard() {
 
@@ -64,12 +60,13 @@ public class PharmaSysDashboard extends JFrame {
         sidebar.add(logoutPanel);
 
         logoutPanel.addMouseListener(new java.awt.event.MouseAdapter() {
-        @Override
-        public void mouseClicked(java.awt.event.MouseEvent e) {
-            new PharmaSysDashboard().setVisible(true);
-            dispose();
-        }
-    });
+            @Override
+            public void mouseClicked(java.awt.event.MouseEvent e) {
+                new PharmaSysLogin().setVisible(true); // ✅ Back to login screen
+                dispose(); // ✅ Close dashboard
+            }
+        });
+
         add(sidebar,BorderLayout.WEST);
 
         //------------------------------ TOP BAR ------------------------------//
@@ -162,28 +159,46 @@ public class PharmaSysDashboard extends JFrame {
 
         add(topBar, BorderLayout.NORTH);
 
-
-
         //------------------------------ CONTENT ------------------------------//
         JPanel content = new JPanel(new BorderLayout());
+        cardLayout = new CardLayout();
+        pageContainer = new JPanel(cardLayout);
+        pageContainer.setOpaque(false);
+
         content.setBackground(bgGray);
         content.setBorder(new EmptyBorder(15,15,15,15));
         add(content,BorderLayout.CENTER);
 
-        JLabel dashboardLbl = new JLabel("Dashboard");
+        dashboardLbl = new JLabel("Dashboard");
         dashboardLbl.setFont(new Font("Segoe UI",Font.BOLD,20));
 
         JLabel subtitle2 = new JLabel(
-                "Welcome back! Here's what's happening with your pharmacy today.");
+                "Welcome back! Here's what's happening with your pharmacy today."
+                
+        );
 
-        JPanel header = new JPanel();
-        header.setLayout(new BoxLayout(header,BoxLayout.Y_AXIS));
+        JPanel leftHeader = new JPanel();
+        leftHeader.setLayout(new BoxLayout(leftHeader, BoxLayout.Y_AXIS));
+        leftHeader.setOpaque(false);
+
+        dashboardLbl.setAlignmentX(Component.LEFT_ALIGNMENT);
+        subtitle2.setAlignmentX(Component.LEFT_ALIGNMENT);
+
+        leftHeader.add(dashboardLbl);
+        leftHeader.add(subtitle2);
+
+        JPanel header = new JPanel(new BorderLayout());
         header.setOpaque(false);
-        header.add(dashboardLbl);
-        header.add(subtitle2);
+        header.setMaximumSize(
+                new Dimension(
+                        Integer.MAX_VALUE,
+                        dashboardLbl.getPreferredSize().height
+                                + subtitle2.getPreferredSize().height + 5
+                )
+        );
 
-        content.add(header,BorderLayout.NORTH);
-
+        // Place header to the LEFT side
+        header.add(leftHeader, BorderLayout.WEST);
 
         //------------------------------ STAT CARDS ------------------------------//
         JPanel statRow = new JPanel(new GridLayout(1,4,15,15));
@@ -271,19 +286,64 @@ public class PharmaSysDashboard extends JFrame {
 
         tableCard.add(scroll, BorderLayout.CENTER);
 
-
-
         //------------------------------ BODY STACK ------------------------------//
         JPanel body = new JPanel();
         body.setOpaque(false);
         body.setLayout(new BoxLayout(body,BoxLayout.Y_AXIS));
+        body.add(header);
 
         body.add(statRow);
         body.add(midRow);
         body.add(Box.createVerticalStrut(20));
         body.add(tableCard);
 
-        content.add(body,BorderLayout.CENTER);
+        pageContainer.add(body, "Dashboard");
+        content.add(pageContainer, BorderLayout.CENTER);
+
+        // ✅ CREATE OTHER PAGES
+
+        // INVENTORY
+        pageContainer.add(new PharmaSysInventory(), "Inventory");
+
+        // SALES
+        JPanel salesPage = new JPanel(new BorderLayout());
+        salesPage.setOpaque(false);
+        salesPage.add(
+            pageHeader(
+                "Sales",
+                "Process customer transactions and manage sales"
+            ),
+            BorderLayout.NORTH
+        );
+        pageContainer.add(salesPage, "Sales");
+
+        // REPORTS
+        JPanel reportsPage = new JPanel(new BorderLayout());
+        reportsPage.setOpaque(false);
+        reportsPage.add(
+            pageHeader(
+                "Reports",
+                "Analyze your pharmacy's performance"
+            ),
+            BorderLayout.NORTH
+        );
+        pageContainer.add(reportsPage, "Reports");
+
+        // SETTINGS
+        JPanel settingsPage = new JPanel(new BorderLayout());
+        settingsPage.setOpaque(false);
+        settingsPage.add(
+            pageHeader(
+                "Settings",
+                "Manage your pharmacy system preferences and configurations"
+            ),
+            BorderLayout.NORTH
+        );
+        pageContainer.add(settingsPage, "Settings");
+
+        // ✅ SHOW DEFAULT PAGE
+        cardLayout.show(pageContainer, "Dashboard");
+
     }
 
         private JPanel sideBtn(String name, boolean active){
@@ -382,6 +442,9 @@ public class PharmaSysDashboard extends JFrame {
                 activeTab = p;
 
                 p.repaint();
+
+                // ✅ PAGE SWITCH
+                cardLayout.show(pageContainer, name);
             }
 
         });
@@ -427,30 +490,23 @@ public class PharmaSysDashboard extends JFrame {
         pc.setForeground(Color.GRAY);
 
         // ---------- VALUE + PERCENT ROW ----------
-        JPanel valueRow = new JPanel(new GridBagLayout());
+        JPanel valueRow = new JPanel(new BorderLayout());
         valueRow.setOpaque(false);
 
-        GridBagConstraints gbc = new GridBagConstraints();
-        gbc.gridy = 0;
-        gbc.fill = GridBagConstraints.HORIZONTAL;
-
-        // CENTER VALUE
-        gbc.gridx = 0;
-        gbc.weightx = 1;
+        // CENTER VALUE (true center)
         v.setHorizontalAlignment(SwingConstants.CENTER);
-        valueRow.add(v, gbc);
+        valueRow.add(v, BorderLayout.CENTER);
 
-        // RIGHT PERCENT
-        gbc.gridx = 1;
-        gbc.weightx = 0;
-        gbc.anchor = GridBagConstraints.EAST;
-        valueRow.add(pc, gbc);
+        // RIGHT PERCENT (locks right side)
+        pc.setHorizontalAlignment(SwingConstants.RIGHT);
+        valueRow.add(pc, BorderLayout.EAST);
 
-        // FORCE FULL WIDTH ALIGNMENT
+        // FORCE FULL WIDTH
         valueRow.setMaximumSize(
             new Dimension(Integer.MAX_VALUE, v.getPreferredSize().height)
         );
         valueRow.setAlignmentX(Component.CENTER_ALIGNMENT);
+
 
         // ---------- CENTER STACK ----------
         JPanel center = new JPanel();
@@ -471,8 +527,6 @@ public class PharmaSysDashboard extends JFrame {
 
         return p;
     }
-
-
 
     private JPanel listPanel(String title, String[][] rows) {
 
@@ -538,12 +592,42 @@ public class PharmaSysDashboard extends JFrame {
             list.add(Box.createVerticalStrut(10));
         }
 
-
         p.add(list,BorderLayout.CENTER);
         return p;
     }
 
-    //-----------------------------------------------------------//
+    // ✅ SIMPLE PLACEHOLDER PAGE
+    private JPanel createPage(String title) {
+
+        JPanel p = new JPanel(new GridBagLayout());
+        p.setBackground(Color.WHITE);
+
+        JLabel lbl = new JLabel(title);
+        lbl.setFont(new Font("Segoe UI", Font.BOLD, 28));
+
+        p.add(lbl);
+
+        return p;
+    }
+
+        private JPanel pageHeader(String title, String subtitle) {
+
+        JPanel header = new JPanel();
+        header.setLayout(new BoxLayout(header, BoxLayout.Y_AXIS));
+        header.setOpaque(false);
+        header.setBorder(new EmptyBorder(0,0,15,0));
+
+        JLabel t = new JLabel(title);
+        t.setFont(new Font("Segoe UI", Font.BOLD, 20));
+
+        JLabel s = new JLabel(subtitle);
+        s.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+
+        header.add(t);
+        header.add(s);
+
+        return header;
+    }
 
     public static void main(String[] args) {
         new PharmaSysDashboard().setVisible(true);
