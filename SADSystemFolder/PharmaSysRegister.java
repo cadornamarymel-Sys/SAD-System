@@ -86,6 +86,7 @@ public class PharmaSysRegister extends JFrame {
         JLabel userLbl = new JLabel("Username");
         userLbl.setFont(new Font("Segoe UI", Font.PLAIN, 13));
         userLabelRow.add(userLbl);
+        card.add(Box.createVerticalStrut(25));
         card.add(userLabelRow);
 
         usernameField = new JTextField();
@@ -93,7 +94,7 @@ public class PharmaSysRegister extends JFrame {
         JPanel userRow = createInputField(usernameField, fieldBorder, 18);
         userRow.setOpaque(false);
         userRow.setMaximumSize(new Dimension(400, 35));
-
+        
         card.add(userRow);
 
         // ----------------------------------------------------
@@ -104,6 +105,7 @@ public class PharmaSysRegister extends JFrame {
         JLabel passLbl = new JLabel("Password");
         passLbl.setFont(new Font("Segoe UI", Font.PLAIN, 13));
         passLabelRow.add(passLbl);
+        card.add(Box.createVerticalStrut(25));
         card.add(passLabelRow);
 
         passField = new JPasswordField();
@@ -115,6 +117,7 @@ public class PharmaSysRegister extends JFrame {
         passRow.setMaximumSize(new Dimension(400, 35));
         JButton eye1 = createEyeButton(passField);
         passRow.add(eye1, BorderLayout.EAST);
+
         card.add(passRow);
 
         // ----------------------------------------------------
@@ -125,6 +128,7 @@ public class PharmaSysRegister extends JFrame {
         JLabel conLbl = new JLabel("Confirm Password");
         conLbl.setFont(new Font("Segoe UI", Font.PLAIN, 13));
         conLabelRow.add(conLbl);
+        card.add(Box.createVerticalStrut(25));
         card.add(conLabelRow);
 
         confirmField = new JPasswordField();
@@ -136,6 +140,7 @@ public class PharmaSysRegister extends JFrame {
         conRow.setMaximumSize(new Dimension(400, 35));
         JButton eye2 = createEyeButton(confirmField);
         conRow.add(eye2, BorderLayout.EAST);
+        
         card.add(conRow);
 
         // ----------------------------------------------------
