@@ -1,8 +1,16 @@
+package SAD;
+
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.io.File;
+import java.util.HashMap;
+import java.util.Map;
+
+import javax.imageio.ImageIO;
+import java.awt.image.BufferedImage;
 
 public class PharmaSysSettings extends JPanel {
 
@@ -14,12 +22,101 @@ public class PharmaSysSettings extends JPanel {
     private final Font normalFont = new Font("Segoe UI", Font.PLAIN, 12);
     private final Font boldFont = new Font("Segoe UI", Font.BOLD, 12);
 
+    // Saved settings
+    private String savedLanguage;
+    private String savedTimezone;
+    private String savedDateFormat;
+    private String savedCurrency;
+
+    // Appearance dropdowns
+    private JComboBox<String> languageCombo;
+    private JComboBox<String> timezoneCombo;
+    private JComboBox<String> dateFormatCombo;
+    private JComboBox<String> currencyCombo;
+
     // Tab components
     private final JPanel tabBar = new JPanel();
     private final CardLayout innerCardLayout = new CardLayout();
     private final JPanel innerCardPanel = new JPanel(innerCardLayout);
+    private JPanel avatarPreview;
+    private java.util.List<JTextField> allFields = new java.util.ArrayList<>();
+    private java.util.List<SimpleToggle> allToggles = new java.util.ArrayList<>();
+
+    // -------------------- NEW: Language / Tab labels --------------------
+    private JLabel profileHeading;
+    private JLabel pharmacyHeading;
+    private JLabel notificationsHeading;
+    private JLabel securityHeading;
+    private JLabel appearanceHeading;
+
+    private JLabel profileTabLabel;
+    private JLabel pharmacyTabLabel;
+    private JLabel notificationsTabLabel;
+    private JLabel securityTabLabel;
+    private JLabel appearanceTabLabel;
+
+    private final Map<String, Map<String, String>> translations = new HashMap<>();
+
+    private void initTranslations() {
+        // English
+        Map<String, String> en = new HashMap<>();
+        en.put("Dashboard", "Dashboard");
+        en.put("Inventory", "Inventory");
+        en.put("Sales", "Sales");
+        en.put("Reports", "Reports");
+        en.put("Settings", "Settings");
+        en.put("Profile Information", "Profile Information");
+        en.put("Pharmacy Details", "Pharmacy Details");
+        // add all labels you have...
+        translations.put("English", en);
+
+        // Filipino
+        Map<String, String> fil = new HashMap<>();
+        fil.put("Dashboard", "Dashboard"); // translate appropriately
+        fil.put("Inventory", "Imbentaryo");
+        fil.put("Sales", "Benta");
+        fil.put("Reports", "Ulat");
+        fil.put("Settings", "Mga Setting");
+        fil.put("Profile Information", "Impormasyon ng Profile");
+        fil.put("Pharmacy Details", "Detalye ng Parmasya");
+        translations.put("Filipino", fil);
+
+        // Spanish
+        Map<String, String> sp = new HashMap<>();
+        sp.put("Dashboard", "Tablero");
+        sp.put("Inventory", "Inventario");
+        sp.put("Sales", "Ventas");
+        sp.put("Reports", "Informes");
+        sp.put("Settings", "Configuración");
+        sp.put("Profile Information", "Información de Perfil");
+        sp.put("Pharmacy Details", "Detalles de la Farmacia");
+        translations.put("Spanish", sp);
+    }
+
+        private void applyLanguage(String language) {
+        if (!translations.containsKey(language)) return;
+        Map<String, String> t = translations.get(language);
+
+        // Example for Settings panel labels
+        // You need references to the labels (store them in fields)
+        profileHeading.setText(t.get("Profile Information"));
+        pharmacyHeading.setText(t.get("Pharmacy Details"));
+        notificationsHeading.setText(t.get("Notification Settings"));
+        securityHeading.setText(t.get("Security Settings"));
+        appearanceHeading.setText(t.get("Appearance Settings"));
+
+        // Similarly for tab labels
+        profileTabLabel.setText(t.get("Profile"));
+        pharmacyTabLabel.setText(t.get("Pharmacy"));
+        notificationsTabLabel.setText(t.get("Notifications"));
+        securityTabLabel.setText(t.get("Security"));
+        appearanceTabLabel.setText(t.get("Appearance"));
+
+        // Repeat for other tables: Dashboard, Inventory, Sales, Reports
+    }
 
     public PharmaSysSettings() {
+        initTranslations();
         setOpaque(false);
         setLayout(new BorderLayout());
         setBackground(bgGray);
@@ -93,7 +190,68 @@ public class PharmaSysSettings extends JPanel {
         bottomBar.setPreferredSize(new Dimension(65, 50));
 
         RoundedButton cancelBtn = new RoundedButton("Cancel", false);
+        cancelBtn.addActionListener(e -> {
+            for (JTextField tf : allFields) {
+                tf.setText("");
+            }
+
+            for (SimpleToggle t : allToggles) {
+                try {
+                    java.lang.reflect.Field f = t.getClass().getDeclaredField("on");
+                    f.setAccessible(true);
+                    f.setBoolean(t, false);
+                    t.repaint();
+                } catch (Exception ignored) {}
+            }
+
+            JOptionPane.showMessageDialog(this, "All changes were discarded.");
+        });
         RoundedButton saveBtn = new RoundedButton("Save Changes", true);
+        saveBtn.addActionListener(e -> {
+
+        // Validate all text fields
+        for (JTextField tf : allFields) {
+            if (tf.getText().trim().isEmpty()) {
+                JOptionPane.showMessageDialog(this,
+                        "Please complete all fields before saving.",
+                        "Validation Error",
+                        JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+        }
+
+        // Validate dropdowns
+        if (languageCombo.getSelectedItem() == null ||
+            timezoneCombo.getSelectedItem() == null ||
+            dateFormatCombo.getSelectedItem() == null ||
+            currencyCombo.getSelectedItem() == null) {
+
+            JOptionPane.showMessageDialog(
+                    this,
+                    "Please complete all appearance settings.",
+                    "Validation Error",
+                    JOptionPane.ERROR_MESSAGE
+            );
+            return;
+        }
+        // ✅ Save the appearance settings
+        savedLanguage = languageCombo.getSelectedItem().toString();
+        savedTimezone = timezoneCombo.getSelectedItem().toString();
+        savedDateFormat = dateFormatCombo.getSelectedItem().toString();
+        savedCurrency = currencyCombo.getSelectedItem().toString();
+
+        // Apply language immediately
+        applyLanguage(savedLanguage);
+
+        JOptionPane.showMessageDialog(this,
+                "Settings saved successfully!\n" +
+                "Language: " + savedLanguage + "\n" +
+                "Timezone: " + savedTimezone + "\n" +
+                "Date Format: " + savedDateFormat + "\n" +
+                "Currency: " + savedCurrency,
+                "Saved",
+                JOptionPane.INFORMATION_MESSAGE);
+    });
         saveBtn.setBackground(new Color(37, 99, 235));   
         saveBtn.setForeground(Color.WHITE);             
         saveBtn.setFocusPainted(false);
@@ -135,6 +293,7 @@ public class PharmaSysSettings extends JPanel {
     }
 
     // ------------------- BUILD TABS -------------------
+
     private JPanel buildProfilePanel() {
         JPanel panel = new JPanel();
         panel.setOpaque(false);
@@ -146,11 +305,11 @@ public class PharmaSysSettings extends JPanel {
         form.setOpaque(false);
 
         // Profile header
-        JLabel heading = new JLabel("Profile Information");
-        heading.setFont(boldFont);
-        heading.setAlignmentX(Component.CENTER_ALIGNMENT);
-        heading.setFont(new Font("Segoe UI", Font.BOLD, 20));
-        form.add(heading);
+        profileHeading = new JLabel("Profile Information");
+        profileHeading.setFont(boldFont);
+        profileHeading.setAlignmentX(Component.CENTER_ALIGNMENT);
+        profileHeading.setFont(new Font("Segoe UI", Font.BOLD, 20));
+        form.add(profileHeading);
         form.add(Box.createVerticalStrut(12));
 
         // Top row: avatar + change photo
@@ -158,34 +317,64 @@ public class PharmaSysSettings extends JPanel {
         topRow.setOpaque(false);
 
         // Avatar circle (simple)
-        JPanel avatar = new JPanel() {
-            @Override
-            protected void paintComponent(Graphics g) {
-                super.paintComponent(g);
-                int size = Math.min(getWidth(), getHeight());
-                Graphics2D g2 = (Graphics2D) g.create();
-                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                g2.setColor(blue);
-                g2.fillOval(0, 0, size, size);
-                g2.setColor(Color.WHITE);
-                g2.setFont(new Font("Segoe UI", Font.BOLD, 28));
-                FontMetrics fm = g2.getFontMetrics();
-                String letter = "A";
-                int w = fm.stringWidth(letter);
-                int h = fm.getAscent();
-                g2.drawString(letter, (size - w) / 2, (size + h) / 2 - 4);
-                g2.dispose();
-            }
-        };
-        avatar.setPreferredSize(new Dimension(96, 96));
-        avatar.setOpaque(false);
+        avatarPreview = new JPanel() {
+    BufferedImage image;
 
+    @Override
+    protected void paintComponent(Graphics g) {
+        super.paintComponent(g);
+        int size = Math.min(getWidth(), getHeight());
+        Graphics2D g2 = (Graphics2D) g.create();
+        g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+
+        if (image != null) {
+            g2.setClip(new java.awt.geom.Ellipse2D.Float(0, 0, size, size));
+            g2.drawImage(image, 0, 0, size, size, null);
+        } else {
+            g2.setColor(blue);
+            g2.fillOval(0, 0, size, size);
+
+            g2.setColor(Color.WHITE);
+            g2.setFont(new Font("Segoe UI", Font.BOLD, 28));
+            FontMetrics fm = g2.getFontMetrics();
+            String letter = "A";
+            int w = fm.stringWidth(letter);
+            int h = fm.getAscent();
+
+            g2.drawString(letter, (size - w) / 2, (size + h) / 2 - 4);
+        }
+        g2.dispose();
+    }
+
+    public void setImage(File file) {
+        try {
+            image = ImageIO.read(file);
+            repaint();
+        } catch (Exception ignored) {}
+    }
+};
+        avatarPreview.setPreferredSize(new Dimension(96, 96));
+
+        // avatarRight panel (was accidentally removed earlier) ------------------------------------------------
         JPanel avatarRight = new JPanel();
         avatarRight.setLayout(new BoxLayout(avatarRight, BoxLayout.Y_AXIS));
         avatarRight.setOpaque(false);
 
+        // Change Photo button (re-add declaration and listener)
         RoundedButton changePhoto = new RoundedButton("Change Photo", false);
         changePhoto.setMaximumSize(new Dimension(140, 35));
+        changePhoto.addActionListener(ev -> {
+            JFileChooser chooser = new JFileChooser();
+            int result = chooser.showOpenDialog(this);
+            if (result == JFileChooser.APPROVE_OPTION) {
+                File f = chooser.getSelectedFile();
+                try {
+                    // call the anonymous setImage(File) method on avatarPreview via reflection
+                    avatarPreview.getClass().getMethod("setImage", File.class).invoke(avatarPreview, f);
+                } catch (Exception ignored) {}
+            }
+        });
+
         JLabel help = new JLabel("JPG, GIF or PNG. Max size 2MB");
         help.setFont(new Font("Segoe UI", Font.BOLD, 12));
         help.setForeground(Color.DARK_GRAY);
@@ -194,8 +383,10 @@ public class PharmaSysSettings extends JPanel {
         avatarRight.add(Box.createVerticalStrut(6));
         avatarRight.add(help);
 
-        topRow.add(avatar);
+        // add avatarPreview and right column to the topRow
+        topRow.add(avatarPreview);
         topRow.add(avatarRight);
+
 
         form.add(topRow);
         form.add(Box.createVerticalStrut(18));
@@ -455,11 +646,36 @@ public class PharmaSysSettings extends JPanel {
         card.add(heading);
         card.add(Box.createVerticalStrut(12));
 
-        // Simple static fields to match screenshot layout
-        card.add(simpleKeyValue("Language", "English (US)"));
-        card.add(simpleKeyValue("Timezone", "PH-2024-12345"));
-        card.add(simpleKeyValue("Date Format", "MM/DD/YYYY"));
-        card.add(simpleKeyValue("Currency", "Philippine Peso (₱)"));
+        languageCombo = new JComboBox<>(new String[]{
+        "English (US)",
+        "Filipino",
+        "Spanish"
+
+        });
+
+        timezoneCombo = new JComboBox<>(new String[]{
+                "Asia/Manila",
+                "UTC",
+                "America/New_York",
+                "Europe/London"
+        });
+
+        dateFormatCombo = new JComboBox<>(new String[]{
+                "MM/DD/YYYY",
+                "DD/MM/YYYY",
+                "YYYY-MM-DD"
+        });
+
+        currencyCombo = new JComboBox<>(new String[]{
+                "Philippine Peso (₱)",
+                "US Dollar ($)",
+                "Euro (€)"
+        });
+
+        card.add(keyValueDropdown("Language", languageCombo));
+        card.add(keyValueDropdown("Timezone", timezoneCombo));
+        card.add(keyValueDropdown("Date Format", dateFormatCombo));
+        card.add(keyValueDropdown("Currency", currencyCombo));
 
         // Toggles
         card.add(Box.createVerticalStrut(8));
@@ -471,6 +687,10 @@ public class PharmaSysSettings extends JPanel {
     }
 
     // ------------------- Utility UI Builders -------------------
+
+    /**
+     * A small helper that creates a two-line label used in pharmacy hours
+     */
     private JLabel createSmallLabel(String text) {
         JLabel l = new JLabel(text);
         l.setFont(new Font("Segoe UI", Font.PLAIN, 11));
@@ -478,6 +698,9 @@ public class PharmaSysSettings extends JPanel {
         return l;
     }
 
+    /**
+     * Create a panel with a label above a rounded text field (simple placeholder)
+     */
     private JPanel labeledField(String label, String placeholder) {
         JPanel p = new JPanel();
         p.setOpaque(false);
@@ -489,10 +712,28 @@ public class PharmaSysSettings extends JPanel {
         l.setAlignmentX(Component.LEFT_ALIGNMENT);
 
         JTextField tf = new JTextField(placeholder);
+        allFields.add(tf);
         tf.setFont(normalFont);
         tf.setBorder(BorderFactory.createEmptyBorder(8, 10, 8, 10));
         tf.setMaximumSize(new Dimension(Integer.MAX_VALUE, 32));
         tf.setForeground(Color.DARK_GRAY);
+
+        // Placeholder behavior
+        tf.addFocusListener(new java.awt.event.FocusAdapter() {
+            @Override
+            public void focusGained(java.awt.event.FocusEvent e) {
+                if (tf.getText().equals(placeholder)) {
+                    tf.setText("");
+                }
+            }
+
+            @Override
+            public void focusLost(java.awt.event.FocusEvent e) {
+                if (tf.getText().trim().isEmpty()) {
+                    tf.setText(placeholder);
+                }
+            }
+        });
 
         // Rounded look wrapper (no external libs)
         RoundedPanel wrapper = new RoundedPanel();
@@ -508,6 +749,9 @@ public class PharmaSysSettings extends JPanel {
         return p;
     }
 
+    /**
+     * Create a horizontal notification row with label, description and a toggle
+     */
     private JPanel notificationRow(String title, String description, boolean initialState) {
         JPanel row = new JPanel(new BorderLayout());
         row.setOpaque(false);
@@ -527,6 +771,8 @@ public class PharmaSysSettings extends JPanel {
 
         // Toggle control
         SimpleToggle toggle = new SimpleToggle(initialState);
+        allToggles.add(toggle);
+
         JPanel right = new JPanel(new FlowLayout(FlowLayout.RIGHT));
         right.setOpaque(false);
         right.add(toggle);
@@ -563,7 +809,38 @@ public class PharmaSysSettings extends JPanel {
         return outer;
     }
 
+    // ---------------- Utility UI Builders ----------------
+
+        private JPanel keyValueDropdown(String key, JComboBox<String> combo) {
+            JPanel p = new JPanel(new BorderLayout());
+            p.setOpaque(false);
+            p.setBorder(new EmptyBorder(8, 6, 8, 6));
+
+            JLabel k = new JLabel(key);
+            k.setFont(boldFont);
+
+            combo.setFont(normalFont);
+            combo.setPreferredSize(new Dimension(180, 28));
+
+            p.add(k, BorderLayout.WEST);
+            p.add(combo, BorderLayout.EAST);
+
+            JSeparator sep = new JSeparator();
+            sep.setForeground(new Color(230, 230, 230));
+
+            JPanel outer = new JPanel(new BorderLayout());
+            outer.setOpaque(false);
+            outer.add(p, BorderLayout.CENTER);
+            outer.add(sep, BorderLayout.SOUTH);
+
+            return outer;
+        }
     // ------------------- Custom Components -------------------
+
+    /**
+     * Simple rounded card panel that paints a white rounded background with a subtle border.
+     * Used to emulate the white content cards in the screenshots.
+     */
     private class RoundedCardPanel extends JPanel {
         public RoundedCardPanel() {
             setOpaque(false);
@@ -594,6 +871,9 @@ public class PharmaSysSettings extends JPanel {
         }
     }
 
+    /**
+     * Generic rounded panel with no white fill (useful as wrappers).
+     */
     private class RoundedPanel extends JPanel {
         private final int arc = 12;
 
@@ -616,6 +896,11 @@ public class PharmaSysSettings extends JPanel {
 
         @Override public boolean isOpaque() { return false; }
     }
+
+    /**
+     * A very small toggle switch implemented purely in Swing (no libraries).
+     * Click to toggle state. Simple visuals; matches screenshot - dark when on.
+     */
     private class SimpleToggle extends JComponent {
         private boolean on;
         private final int width = 42;
@@ -659,6 +944,9 @@ public class PharmaSysSettings extends JPanel {
         }
     }
 
+    /**
+     * Tab button style used at the top to switch sections.
+     */
     private class TabButton extends JPanel {
         private final JLabel label;
         private boolean selected = false;
@@ -703,6 +991,11 @@ public class PharmaSysSettings extends JPanel {
             }
         }
     }
+
+    /**
+     * A small pill-shaped rounded button used for Save/Cancel and Change Photo.
+     * If primary is true -> blue filled; otherwise light-gray bordered.
+     */
     private class RoundedButton extends JButton {
         private final boolean primary;
 
