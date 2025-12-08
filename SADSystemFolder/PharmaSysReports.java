@@ -1,3 +1,5 @@
+package SAD;
+
 import javax.swing.*;
 import javax.swing.border.*;
 import javax.swing.table.DefaultTableCellRenderer;
@@ -30,7 +32,7 @@ public class PharmaSysReports extends JPanel {
         // Outer content wrapper (mimic your Dashboard content spacing)
         JPanel wrapper = new JPanel(new BorderLayout());
         wrapper.setOpaque(false);
-        wrapper.setBorder(new EmptyBorder(2,5,5,5));
+        wrapper.setBorder(new EmptyBorder(0,0,0,0));
 
         // --- Header: Title + Subtitle + right-side export ---
         wrapper.add(buildTopControls(), BorderLayout.NORTH);
@@ -57,11 +59,8 @@ public class PharmaSysReports extends JPanel {
         innerContainer.add(buildCashierPerformancePage(), "Cashier");
 
         innerCards.show(innerContainer, "Daily"); // default
-
         center.add(innerContainer, BorderLayout.CENTER);
-
         wrapper.add(center, BorderLayout.CENTER);
-
         add(wrapper, BorderLayout.CENTER);
     }
 
@@ -441,7 +440,8 @@ public class PharmaSysReports extends JPanel {
     }
 
     // ---------------- TOP MEDICINE PAGE ----------------
-    private JPanel buildTopMedicinePage() {
+    // ---------------- TOP MEDICINE PAGE ----------------
+private JPanel buildTopMedicinePage() {
     JPanel p = createCardedPanel();
     p.setLayout(new BorderLayout());
     p.setBorder(new EmptyBorder(12,12,12,12));
@@ -479,57 +479,23 @@ public class PharmaSysReports extends JPanel {
     header.setBackground(new Color(245, 248, 252));
     header.setForeground(Color.BLACK);
 
-    // RANK BADGE RENDERER
-    DefaultTableCellRenderer rankRenderer = new DefaultTableCellRenderer() {
-        @Override
-        public Component getTableCellRendererComponent(
-                JTable table, Object value, boolean isSelected,
-                boolean hasFocus, int row, int col) {
-
-            JLabel badge = new JLabel(value.toString(), SwingConstants.CENTER);
-
-            badge.setPreferredSize(new Dimension(28, 28));
-            badge.setOpaque(true);
-            badge.setFont(new Font("Segoe UI", Font.BOLD, 13));
-            badge.setHorizontalAlignment(SwingConstants.CENTER);
-
-            Color gold = new Color(255, 204, 0);
-            Color silver = new Color(180, 180, 190);
-            Color bronze = new Color(205, 127, 50);
-
-            switch (row) {
-                case 0: badge.setBackground(gold); break;
-                case 1: badge.setBackground(silver); break;
-                case 2: badge.setBackground(bronze); break;
-                default:
-                    badge.setBackground(new Color(230,230,230));
-                    badge.setForeground(Color.BLACK);
-            }
-
-            // perfect circle
-            badge.setBorder(new RoundedBorder(14));
-
-            JPanel wrapper = new JPanel(new GridBagLayout());
-            wrapper.setOpaque(false);
-            wrapper.add(badge);
-
-            return wrapper;
-        }
-    };
+    // ------------------- RANK COLUMN -------------------
+    DefaultTableCellRenderer rankRenderer = new DefaultTableCellRenderer();
+    rankRenderer.setHorizontalAlignment(JLabel.CENTER); // center the numbers
     table.getColumnModel().getColumn(0).setCellRenderer(rankRenderer);
 
     // CENTER ALL OTHER COLUMNS
     DefaultTableCellRenderer center = new DefaultTableCellRenderer();
     center.setHorizontalAlignment(JLabel.CENTER);
-    table.getColumnModel().getColumn(2).setCellRenderer(center);
-    table.getColumnModel().getColumn(3).setCellRenderer(center);
+    table.getColumnModel().getColumn(1).setCellRenderer(center); // Medicine Name
+    table.getColumnModel().getColumn(2).setCellRenderer(center); // Units Sold
+    table.getColumnModel().getColumn(3).setCellRenderer(center); // Revenue
 
     // PROFIT MARGIN GREEN + CENTER
     DefaultTableCellRenderer marginRenderer = new DefaultTableCellRenderer() {
         @Override
         public Component getTableCellRendererComponent(
                 JTable t, Object v, boolean s, boolean f, int r, int c) {
-
             JLabel lbl = (JLabel) super.getTableCellRendererComponent(t, v, s, f, r, c);
             lbl.setForeground(new Color(0, 135, 0));
             lbl.setHorizontalAlignment(JLabel.CENTER);
@@ -539,12 +505,6 @@ public class PharmaSysReports extends JPanel {
     };
     table.getColumnModel().getColumn(4).setCellRenderer(marginRenderer);
 
-    // MEDICINE NAME (CENTER ALIGN)
-    DefaultTableCellRenderer centerName = new DefaultTableCellRenderer();
-    centerName.setHorizontalAlignment(JLabel.CENTER);
-    table.getColumnModel().getColumn(1).setCellRenderer(centerName);
-
-
     // SCROLLPANE
     JScrollPane scroll = new JScrollPane(table);
     scroll.setBorder(new EmptyBorder(12,0,0,0));
@@ -553,6 +513,7 @@ public class PharmaSysReports extends JPanel {
     p.add(scroll, BorderLayout.CENTER);
     return p;
 }
+
 
 // Helper for rank circular badge
 class RoundedBorder implements Border {
