@@ -20,6 +20,9 @@ public class PharmaSysDashboard extends JFrame {
     private JPanel pageContainer;
     private CardLayout cardLayout;
     private JLabel dashboardLbl;
+    
+    // List of page names for search functionality
+    private final String[] PAGE_NAMES = {"Dashboard", "Inventory", "Sales", "Reports", "Settings"};
 
     public PharmaSysDashboard() {
 
@@ -50,14 +53,20 @@ public class PharmaSysDashboard extends JFrame {
         sidebar.add(Box.createVerticalStrut(30));
         sidebar.setPreferredSize(new Dimension(200,30));
 
-        sidebar.add(sideBtn("Dashboard",true));
-        sidebar.add(sideBtn("Inventory",false));
-        sidebar.add(sideBtn("Sales",false));
-        sidebar.add(sideBtn("Reports",false));
-        sidebar.add(sideBtn("Settings",false));
+        JPanel dashboardButton = sideBtn("Dashboard",true);
+        JPanel inventoryButton = sideBtn("Inventory",false);
+        JPanel salesButton = sideBtn("Sales",false);
+        JPanel reportsButton = sideBtn("Reports",false);
+        JPanel settingsButton = sideBtn("Settings",false);
+        JPanel logoutPanel = sideBtn("Log out", false);
+        
+        sidebar.add(dashboardButton);
+        sidebar.add(inventoryButton);
+        sidebar.add(salesButton);
+        sidebar.add(reportsButton);
+        sidebar.add(settingsButton);
 
         // ✅ REAL LOG OUT BUTTON
-        JPanel logoutPanel = sideBtn("Log out", false);
         sidebar.add(logoutPanel);
 
         logoutPanel.addMouseListener(new java.awt.event.MouseAdapter() {
@@ -76,7 +85,7 @@ public class PharmaSysDashboard extends JFrame {
         topBar.setBorder(new EmptyBorder(10,15,10,15));
 
 
-        // ✅ LEFT SIDE: Logo + Search
+        // ✅ LEFT SIDE: Logo + Search Container
         JPanel leftBar = new JPanel(new FlowLayout(FlowLayout.LEFT,17,0));
         leftBar.setOpaque(false);
 
@@ -95,16 +104,34 @@ public class PharmaSysDashboard extends JFrame {
 
         logoPanel.add(topLogo);
         logoPanel.add(topSub);
+        
+        // --- MODIFICATION: Search Container (TextField + Button) ---
+        
+        // Panel to hold the search text field and the search button
+        JPanel searchContainer = new JPanel(new BorderLayout());
+        searchContainer.setPreferredSize(new Dimension(550, 40)); // Increased width to fit button
 
         // Search bar — GUARANTEED WORKING PLACEHOLDER ✅
         JTextField search = new JTextField();
         search.setBorder(new EmptyBorder(5,20,5,10));
-        search.setPreferredSize(new Dimension(480,40));
+        search.setPreferredSize(new Dimension(480,40)); // Adjusted preferred size
 
         String placeholder = "Search for anything here...";
         search.setText(placeholder);
         search.setForeground(Color.GRAY);
+        
+        // Search Button
+        JButton searchBtn = new JButton("Search");
+        searchBtn.setBackground(new Color(92,120,224)); // Active-like blue color
+        searchBtn.setForeground(Color.WHITE);
+        searchBtn.setFont(new Font("Segoe UI", Font.BOLD, 12));
+        searchBtn.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        searchBtn.setBorder(new EmptyBorder(0, 10, 0, 10)); // Padding
 
+        // Add components to search container
+        searchContainer.add(search, BorderLayout.CENTER);
+        searchContainer.add(searchBtn, BorderLayout.EAST);
+        
         // Remove placeholder only when user types
         search.addKeyListener(new java.awt.event.KeyAdapter() {
             @Override
@@ -123,13 +150,10 @@ public class PharmaSysDashboard extends JFrame {
 
             java.awt.event.MouseEvent me = (java.awt.event.MouseEvent) event;
 
-            // Only react on real click
             if (me.getID() != java.awt.event.MouseEvent.MOUSE_PRESSED) return;
 
-            // Ignore clicks inside the search box itself
-            if (SwingUtilities.isDescendingFrom(me.getComponent(), search)) return;
+            if (SwingUtilities.isDescendingFrom(me.getComponent(), searchContainer)) return;
 
-            // Restore placeholder when clicking elsewhere
             if (search.getText().trim().isEmpty()) {
                 search.setText(placeholder);
                 search.setForeground(Color.GRAY);
@@ -137,10 +161,50 @@ public class PharmaSysDashboard extends JFrame {
 
         }, AWTEvent.MOUSE_EVENT_MASK);
 
+        searchBtn.addActionListener(e -> {
+            String searchTerm = search.getText().trim();
+            if (searchTerm.equalsIgnoreCase(placeholder) || searchTerm.isEmpty()) {
+                JOptionPane.showMessageDialog(this, "Please enter a search term.", "Search Error", JOptionPane.WARNING_MESSAGE);
+                return;
+            }
+
+            // Simple search: check if the term matches any page name
+            boolean pageFound = false;
+            for (String page : PAGE_NAMES) {
+                if (page.equalsIgnoreCase(searchTerm)) {
+                    cardLayout.show(pageContainer, page);
+                    dashboardLbl.setText(page);
+                    
+                    // Reset all side buttons to normal, then set the active one
+                    resetSideButtonHighlight(dashboardButton, inventoryButton, salesButton, reportsButton, settingsButton, logoutPanel);
+                    
+                    // Find and set the active tab in the sidebar
+                    JPanel targetPanel = getPanelByName(page, dashboardButton, inventoryButton, salesButton, reportsButton, settingsButton, logoutPanel);
+                    if (targetPanel != null) {
+                        if (activeTab != null) {
+                            activeTab.setBackground(normalColor);
+                            activeTab.repaint();
+                        }
+                        targetPanel.setBackground(bgGray);
+                        activeTab = targetPanel;
+                        targetPanel.repaint();
+                    }
+                    
+                    pageFound = true;
+                    // For the requirement "goes to every and each of the pages," we just stop after the first match.
+                    break; 
+                }
+            }
+
+            if (!pageFound) {
+                 JOptionPane.showMessageDialog(this, "No page found for: " + searchTerm, "Search Result", JOptionPane.INFORMATION_MESSAGE);
+            }
+        });
+        // --- END MODIFICATION ---
+
         // Add both to left of top bar
         leftBar.add(logoPanel);
-        leftBar.add(search);
-
+        leftBar.add(searchContainer); // Using the new container
 
         // ✅ RIGHT SIDE
         JPanel rightPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
@@ -148,7 +212,7 @@ public class PharmaSysDashboard extends JFrame {
 
         rightPanel.add(new JLabel("English (US)"));
 
-        JLabel greeting = new JLabel("  Good Morning      03 November 2025 | 11:45:04   ");
+        JLabel greeting = new JLabel("  Good Morning     03 November 2025 | 11:45:04  ");
         greeting.setForeground(Color.WHITE);
 
         rightPanel.add(greeting);
@@ -175,7 +239,6 @@ public class PharmaSysDashboard extends JFrame {
 
         JLabel subtitle2 = new JLabel(
                 "Welcome back! Here's what's happening with your pharmacy today."
-                
         );
 
         JPanel leftHeader = new JPanel();
@@ -334,16 +397,7 @@ public class PharmaSysDashboard extends JFrame {
         pageContainer.add(new PharmaSysSales(), "Sales");
 
         // REPORTS
-        JPanel reportsPage = new JPanel(new BorderLayout());
-        reportsPage.setOpaque(false);
-        reportsPage.add(
-            pageHeader(
-                "Reports",
-                "Analyze your pharmacy's performance"
-            ),
-            BorderLayout.NORTH
-        );
-        pageContainer.add(reportsPage, "Reports");
+        pageContainer.add(new PharmaSysReports(), "Reports");
 
         // SETTINGS
         JPanel settingsPage = new JPanel(new BorderLayout());
@@ -361,6 +415,38 @@ public class PharmaSysDashboard extends JFrame {
         cardLayout.show(pageContainer, "Dashboard");
 
     }
+    
+    // --- New Helper Method for Search Functionality ---
+    /**
+     * Resets the background of all sidebar buttons to the normal color.
+     */
+    private void resetSideButtonHighlight(JPanel... buttons) {
+        if (activeTab != null) {
+            activeTab.setBackground(normalColor);
+            activeTab.repaint();
+            activeTab = null;
+        }
+    }
+    
+    /**
+     * Finds the JPanel associated with the given page name.
+     */
+    private JPanel getPanelByName(String name, JPanel... buttons) {
+        for (JPanel panel : buttons) {
+            Component[] components = panel.getComponents();
+            for (Component comp : components) {
+                if (comp instanceof JLabel) {
+                    JLabel lbl = (JLabel) comp;
+                    if (lbl.getText().equalsIgnoreCase(name)) {
+                        return panel;
+                    }
+                }
+            }
+        }
+        return null;
+    }
+    // --- End New Helper Method ---
+
 
     private JPanel listPanelLowStock(String title, String[][] rows) {
 
@@ -388,8 +474,8 @@ public class PharmaSysDashboard extends JFrame {
     t.setFont(new Font("Segoe UI", Font.BOLD, 12));
     t.setBorder(BorderFactory.createMatteBorder(0, 0, 1, 0, new Color(220,220,220)));
     t.setBorder(new CompoundBorder(
-            t.getBorder(),
-            new EmptyBorder(0,0,8,0)
+                t.getBorder(),
+                new EmptyBorder(0,0,8,0)
     ));
 
     p.add(t, BorderLayout.NORTH);
@@ -464,6 +550,7 @@ public class PharmaSysDashboard extends JFrame {
     p.add(list, BorderLayout.CENTER);
 
     return p;
+
 }
 
 
@@ -477,7 +564,7 @@ public class PharmaSysDashboard extends JFrame {
 
                 Graphics2D g2 = (Graphics2D) g.create();
                 g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
-                                    RenderingHints.VALUE_ANTIALIAS_ON);
+                                                RenderingHints.VALUE_ANTIALIAS_ON);
 
                 // ✅ pressed movement effect
                 int offset = pressed[0] ? 2 : 0;
@@ -551,6 +638,11 @@ public class PharmaSysDashboard extends JFrame {
 
             @Override
             public void mouseClicked(java.awt.event.MouseEvent e) {
+                
+                // Don't switch if "Log out" is clicked, as it's handled separately
+                if (name.equals("Log out")) {
+                    return; 
+                }
 
                 // ✅ Clear old active tab highlight
                 if (activeTab != null) {
@@ -566,6 +658,7 @@ public class PharmaSysDashboard extends JFrame {
 
                 // ✅ PAGE SWITCH
                 cardLayout.show(pageContainer, name);
+                dashboardLbl.setText(name); // Update header label
             }
 
         });
@@ -629,10 +722,10 @@ public class PharmaSysDashboard extends JFrame {
         center.add(t);
         center.add(Box.createVerticalStrut(6));
 
-        center.add(v);              
+        center.add(v);          
         center.add(Box.createVerticalStrut(4));
 
-        center.add(percentRow);    
+        center.add(percentRow);     
 
         // ---------- APPLY ----------
         p.add(topRow, BorderLayout.NORTH);
@@ -641,7 +734,7 @@ public class PharmaSysDashboard extends JFrame {
         return p;
     }
 
-  private JPanel listPanelExpiring(String title, String[][] rows) {
+ private JPanel listPanelExpiring(String title, String[][] rows) {
 
     JPanel p = new JPanel() {
         @Override
@@ -667,8 +760,8 @@ public class PharmaSysDashboard extends JFrame {
     t.setFont(new Font("Segoe UI", Font.BOLD, 12));
     t.setBorder(BorderFactory.createMatteBorder(0, 0, 1, 0, new Color(220,220,220)));
     t.setBorder(new CompoundBorder(
-            t.getBorder(),
-            new EmptyBorder(0,0,8,0)
+                t.getBorder(),
+                new EmptyBorder(0,0,8,0)
     ));
 
     p.add(t, BorderLayout.NORTH);
@@ -684,7 +777,7 @@ public class PharmaSysDashboard extends JFrame {
 
         // EXPECTED FORMAT FOR EXPIRES SOON:
         // r[0] = medicine name
-        // r[1] = batch   (ex: "Batch: BT001")
+        // r[1] = batch  (ex: "Batch: BT001")
         // r[2] = days left (ex: "17 days left")
         // r[3] = stock (ex: "Stock: 150")
 
@@ -733,7 +826,9 @@ public class PharmaSysDashboard extends JFrame {
     p.add(list, BorderLayout.CENTER);
 
     return p;
+
 }
+
 
         private JPanel pageHeader(String title, String subtitle) {
 
@@ -755,6 +850,7 @@ public class PharmaSysDashboard extends JFrame {
     }
 
     public static void main(String[] args) {
-        new PharmaSysDashboard().setVisible(true);
+        // Run the main window on the Event Dispatch Thread
+        SwingUtilities.invokeLater(() -> new PharmaSysDashboard().setVisible(true));
     }
 }
