@@ -1,17 +1,17 @@
+package SAD;
+
 import java.awt.*;
 import java.awt.event.*;
 import java.awt.font.TextAttribute;
-import java.awt.geom.RoundRectangle2D;
 import java.util.HashMap;
 import java.util.Map;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import javax.swing.text.JTextComponent;
 
-
 public class PharmaSysLogin extends JFrame {
 
-    private enum Mode { LOGIN, REGISTER, FORGOT }
+    private enum Mode { LOGIN, REGISTER }
 
     // Shared UI pieces (card content)
     private final JPanel card;
@@ -21,38 +21,32 @@ public class PharmaSysLogin extends JFrame {
     // Username
     private final JPanel userLabelRow;
     private final JTextField usernameField;
-    private final Component vStrutBeforeUser; // extra register spacing
+    private final Component vStrutBeforeUser;
 
     // Password
     private final JPanel passLabelRow;
     private final JPasswordField passwordField;
     private final JPanel passRow;
     private final JButton toggleEyeBtn;
-    private final Component vStrutBeforePass; // extra register spacing
+    private final Component vStrutBeforePass;
 
     // Confirm (register only)
     private final JPanel conLabelRow;
     private final JPasswordField confirmField;
     private final JPanel conRow;
     private final JButton toggleConfirmEyeBtn;
-    private final Component vStrutBeforeConfirm; // extra register spacing
+    private final Component vStrutBeforeConfirm;
 
-    // Forgot (forgot mode)
-    private final JPanel forgotLabelRow;
-    private final JTextField forgotUserField;
-    private final JPanel forgotRow;
-
-    // Remember / Forgot (login only)
+    // Remember (login only)
     private final JPanel optionsRow;
     private final JCheckBox rememberMe;
-    private final JLabel forgotLink; // used in login mode to switch to forgot mode
 
     // Buttons
     private final JButton loginBtn;
-    private final JButton createBtn; // visible in register mode (sign up)
-    private final JPanel createRowLink; // "Don't have an account? Create account" row
+    private final JButton createBtn;
+    private final JPanel createRowLink;
 
-    // Back link for register/forgot mode
+    // Back link for register mode
     private final JLabel backToLoginLink;
 
     // Colors
@@ -71,12 +65,10 @@ public class PharmaSysLogin extends JFrame {
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLayout(new BorderLayout());
 
-        // Main background
         JPanel background = new JPanel(new BorderLayout());
         background.setBackground(bgBlue);
         add(background);
 
-        // Header / Brand
         JPanel header = new JPanel();
         header.setOpaque(false);
         header.setLayout(new BoxLayout(header, BoxLayout.Y_AXIS));
@@ -97,18 +89,15 @@ public class PharmaSysLogin extends JFrame {
         header.add(Box.createVerticalStrut(15));
         background.add(header, BorderLayout.NORTH);
 
-        // Center holder (keeps card centered)
         JPanel centerHolder = new JPanel(new GridBagLayout());
         centerHolder.setOpaque(false);
 
-        // Build card and components (all created once; visibility toggled)
-        card = new RoundedPanel(40); // same rounded card
+        card = new RoundedPanel(40);
         card.setBackground(cardBg);
         card.setPreferredSize(new Dimension(450, 450));
         card.setLayout(new BoxLayout(card, BoxLayout.Y_AXIS));
         card.setBorder(new EmptyBorder(30, 40, 30, 40));
 
-        // Titles (shared)
         topTitle = new JLabel("Welcome");
         topTitle.setFont(new Font("Segoe UI", Font.BOLD, 19));
         topTitle.setAlignmentX(Component.CENTER_ALIGNMENT);
@@ -122,12 +111,11 @@ public class PharmaSysLogin extends JFrame {
         card.add(topSub);
         card.add(Box.createVerticalStrut(20));
 
-        // ----- Register-mode spacing struts (invisible initially) -----
+        // Register-mode spacing struts
         vStrutBeforeUser = Box.createVerticalStrut(30);
         vStrutBeforeUser.setVisible(false);
         card.add(vStrutBeforeUser);
 
-        // USER label row (same as original login)
         userLabelRow = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
         userLabelRow.setOpaque(false);
         JLabel userLbl = new JLabel("Username");
@@ -135,15 +123,14 @@ public class PharmaSysLogin extends JFrame {
         userLabelRow.add(userLbl);
         card.add(userLabelRow);
 
-        // Username input (styled same as login)
         usernameField = new JTextField();
         styleField(usernameField, fieldBorder);
         usernameField.setBorder(BorderFactory.createCompoundBorder(
                 new RoundedBorder(18, fieldBorder),
                 new EmptyBorder(5, 8, 5, 8)
         ));
-        // Placeholder (same 'type on key' behavior as login)
-        final String userPlaceholder = "  Enter your username";
+
+        final String userPlaceholder = "Enter your username";
         usernameField.setText(userPlaceholder);
         usernameField.setForeground(Color.GRAY);
         final boolean[] showingUsernamePlaceholder = { true };
@@ -172,12 +159,10 @@ public class PharmaSysLogin extends JFrame {
         card.add(usernameField);
         card.add(Box.createVerticalStrut(15));
 
-        // ----- Before password register spacing -----
         vStrutBeforePass = Box.createVerticalStrut(5);
         vStrutBeforePass.setVisible(false);
         card.add(vStrutBeforePass);
 
-        // PASS label row
         passLabelRow = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
         passLabelRow.setOpaque(false);
         JLabel passLbl = new JLabel("Password");
@@ -185,7 +170,6 @@ public class PharmaSysLogin extends JFrame {
         passLabelRow.add(passLbl);
         card.add(passLabelRow);
 
-        // PASS row with rounded border + eye button
         passRow = new JPanel(new BorderLayout());
         passRow.setOpaque(false);
         passRow.setMaximumSize(new Dimension(400, 35));
@@ -199,9 +183,9 @@ public class PharmaSysLogin extends JFrame {
         passwordField.setBorder(null);
         passwordField.setFont(new Font("Segoe UI", Font.PLAIN, 12));
         passwordField.setOpaque(false);
-        passwordField.setEchoChar((char) 0); // start with placeholder visible
+        passwordField.setEchoChar((char) 0);
 
-        final String passwordPlaceholder = "  Enter your password";
+        final String passwordPlaceholder = "Enter your password";
         passwordField.setText(passwordPlaceholder);
         passwordField.setForeground(Color.GRAY);
 
@@ -236,7 +220,6 @@ public class PharmaSysLogin extends JFrame {
         toggleEyeBtn.setOpaque(false);
         toggleEyeBtn.setPreferredSize(new Dimension(35, 35));
         toggleEyeBtn.addActionListener(e -> {
-            // only toggle if user actually typed (placeholder gone)
             if (!showingPasswordPlaceholder[0]) {
                 if (passwordField.getEchoChar() == '•') passwordField.setEchoChar((char) 0);
                 else passwordField.setEchoChar('•');
@@ -248,7 +231,6 @@ public class PharmaSysLogin extends JFrame {
         card.add(passRow);
         card.add(Box.createVerticalStrut(5));
 
-        // ----- options (remember & forgot) row (login-only) -----
         optionsRow = new JPanel(new BorderLayout());
         optionsRow.setOpaque(false);
 
@@ -256,26 +238,10 @@ public class PharmaSysLogin extends JFrame {
         rememberMe.setOpaque(false);
         rememberMe.setFont(new Font("Segoe UI", Font.PLAIN, 12));
 
-        forgotLink = new JLabel("Forgot password?");
-        forgotLink.setFont(new Font("Segoe UI", Font.PLAIN, 12));
-        forgotLink.setForeground(Color.BLUE);
-        setHoverUnderline(forgotLink);
-
-        // link will switch the card to forgot mode
-        forgotLink.addMouseListener(new MouseAdapter() {
-            @Override
-            public void mouseClicked(MouseEvent e) {
-                switchToForgot();
-            }
-        });
-
         optionsRow.add(rememberMe, BorderLayout.WEST);
-        optionsRow.add(forgotLink, BorderLayout.EAST);
-
         card.add(optionsRow);
         card.add(Box.createVerticalStrut(5));
 
-        // ----- Login Button (custom painted as original) -----
         final boolean[] pressed = { false };
 
         loginBtn = new JButton("Log in") {
@@ -319,7 +285,6 @@ public class PharmaSysLogin extends JFrame {
         loginBtn.setPreferredSize(new Dimension(380, 35));
         loginBtn.setAlignmentX(Component.CENTER_ALIGNMENT);
 
-        // Hover/press effects
         loginBtn.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseEntered(MouseEvent e) {
@@ -363,12 +328,10 @@ public class PharmaSysLogin extends JFrame {
             }
         });
 
-        // login action (unchanged)
         loginBtn.addActionListener(e -> {
             String username = usernameField.getText().trim();
             String password = new String(passwordField.getPassword());
 
-            // If placeholders are still visible, treat them as empty
             if (username.equals("  Enter your username") || username.isEmpty()) username = "";
             if (password.equals("  Enter your password") || password.isEmpty()) password = "";
 
@@ -389,7 +352,6 @@ public class PharmaSysLogin extends JFrame {
         card.add(loginBtn);
         card.add(Box.createVerticalStrut(20));
 
-        // ----- Register Confirm label/row (hidden initially) -----
         vStrutBeforeConfirm = Box.createVerticalStrut(1);
         vStrutBeforeConfirm.setVisible(false);
         card.add(vStrutBeforeConfirm);
@@ -413,7 +375,6 @@ public class PharmaSysLogin extends JFrame {
         card.add(Box.createVerticalStrut(5));
         card.add(conRow);
 
-        // The Create Account button (register action), initially hidden.
         createBtn = new JButton("Sign Up") {
             @Override
             protected void paintComponent(Graphics g) {
@@ -443,7 +404,6 @@ public class PharmaSysLogin extends JFrame {
         card.add(Box.createVerticalStrut(5));
         card.add(createBtn);
 
-        // ----- Create account link (login card) -----
         createRowLink = new JPanel(new FlowLayout(FlowLayout.CENTER, 3, 0));
         createRowLink.setOpaque(false);
         JLabel noAcc = new JLabel("Don’t have an account?");
@@ -458,7 +418,6 @@ public class PharmaSysLogin extends JFrame {
         createRowLink.add(noAcc);
         createRowLink.add(createAcc);
 
-        // When clicking the link, switch the same card to registration mode
         createAcc.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
@@ -469,7 +428,6 @@ public class PharmaSysLogin extends JFrame {
         card.add(createRowLink);
         card.add(Box.createVerticalStrut(10));
 
-        // ---- Back to login link to be used in register/forgot mode (in place of createRowLink) ----
         backToLoginLink = new JLabel("Already have an account?");
         backToLoginLink.setFont(new Font("Segoe UI", Font.PLAIN, 11));
         backToLoginLink.setForeground(Color.BLUE);
@@ -484,63 +442,12 @@ public class PharmaSysLogin extends JFrame {
         });
         card.add(backToLoginLink);
 
-        // -------------------- Forgot password fields (hidden initially) --------------------
-        forgotLabelRow = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
-        forgotLabelRow.setOpaque(false);
-        JLabel forgotLbl = new JLabel("Email / Username");
-        forgotLbl.setFont(new Font("Segoe UI", Font.PLAIN, 13));
-        forgotLabelRow.add(forgotLbl);
-        forgotLabelRow.setVisible(false);
-        card.add(Box.createVerticalStrut(10));
-        card.add(forgotLabelRow);
-
-        forgotUserField = new JTextField();
-        addPlaceholder(forgotUserField, "Enter email or username...");
-        forgotRow = createInputField(forgotUserField, fieldBorder, 18);
-        forgotRow.setMaximumSize(new Dimension(400, 35));
-        forgotRow.setOpaque(false);
-        forgotRow.setVisible(false);
-        card.add(forgotRow);
-        
-        card.add(Box.createVerticalStrut(10));
-        JButton submitForgot = new JButton("Submit Request") {
-            @Override
-            protected void paintComponent(Graphics g) {
-                Graphics2D g2 = (Graphics2D) g.create();
-                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
-                        RenderingHints.VALUE_ANTIALIAS_ON);
-
-                g2.setColor(getBackground());
-                g2.fillRoundRect(0, 0, getWidth(), getHeight(), 10, 22);
-
-                super.paintComponent(g2);
-                g2.dispose();
-            }
-        };
-        submitForgot.setFont(new Font("Segoe UI", Font.BOLD, 13));
-        submitForgot.setBackground(actionBtnColor);
-        submitForgot.setForeground(Color.WHITE);
-        submitForgot.setFocusPainted(false);
-        submitForgot.setContentAreaFilled(false);
-        submitForgot.setBorderPainted(false);
-        submitForgot.setOpaque(false);
-        submitForgot.setMaximumSize(new Dimension(Integer.MAX_VALUE, 40));
-        submitForgot.setAlignmentX(Component.CENTER_ALIGNMENT);
-        submitForgot.setVisible(false);
-        submitForgot.addActionListener(e -> handleForgotSubmit());
-        
-        card.add(submitForgot);
-        card.add(Box.createVerticalStrut(10));
-
-        // finished building card
         centerHolder.add(card);
         background.add(centerHolder, BorderLayout.CENTER);
 
-        // show window
         setVisible(true);
     }
 
-    // Toggle UI to Register mode
     private void switchToRegister() {
         mode = Mode.REGISTER;
 
@@ -550,7 +457,7 @@ public class PharmaSysLogin extends JFrame {
         vStrutBeforeUser.setVisible(true);
         vStrutBeforePass.setVisible(true);
         vStrutBeforeConfirm.setVisible(true);
-        
+
         userLabelRow.setVisible(true);
         usernameField.setVisible(true);
 
@@ -564,11 +471,6 @@ public class PharmaSysLogin extends JFrame {
         loginBtn.setVisible(false);
         optionsRow.setVisible(false);
         createRowLink.setVisible(false);
-
-        // hide forgot pieces
-        forgotLabelRow.setVisible(false);
-        forgotRow.setVisible(false);
-        setSubmitForgotVisible(false);
 
         backToLoginLink.setVisible(true);
 
@@ -584,100 +486,38 @@ public class PharmaSysLogin extends JFrame {
         topTitle.setText("Welcome");
         topSub.setText("Please sign in to your account");
 
-        // Hide register spacing
-        vStrutBeforeUser.setVisible(false);
-        vStrutBeforePass.setVisible(false);
-        vStrutBeforeConfirm.setVisible(false);
-
-        // Hide confirm field and create button
-        conLabelRow.setVisible(false);
-        conRow.setVisible(false);
-        createBtn.setVisible(false);
-        
         userLabelRow.setVisible(true);
         usernameField.setVisible(true);
         passLabelRow.setVisible(true);
         passRow.setVisible(true);
-        
-        // Show login-only pieces
         loginBtn.setVisible(true);
         optionsRow.setVisible(true);
         createRowLink.setVisible(true);
 
-        // Hide back-to-login link
+        vStrutBeforeUser.setVisible(false);
+        vStrutBeforePass.setVisible(false);
+        vStrutBeforeConfirm.setVisible(false);
+        conLabelRow.setVisible(false);
+        conRow.setVisible(false);
+        createBtn.setVisible(false);
+
         backToLoginLink.setVisible(false);
 
-        // Hide forgot pieces
-        forgotLabelRow.setVisible(false);
-        forgotRow.setVisible(false);
-        setSubmitForgotVisible(false);
-
-        // Reset confirm content & placeholder
-        confirmField.setText("");
-        confirmField.setForeground(Color.GRAY);
+        usernameField.setText("  Enter your username");
+        usernameField.setForeground(Color.GRAY);
+        passwordField.setText("  Enter your password");
+        passwordField.setForeground(Color.GRAY);
+        passwordField.setEchoChar((char) 0);
 
         revalidate();
         repaint();
     }
-       // show/hide the submit forgot button (it's the last component added before backToLoginLink)
-    private void setSubmitForgotVisible(boolean visible) {
-        // The submit forgot button is the component at index: find it by scanning card children.
-        for (Component c : card.getComponents()) {
-            if (c instanceof JButton) {
-                JButton b = (JButton) c;
-                if ("Submit Request".equals(b.getText())) {
-                    b.setVisible(visible);
-                    return;
-                }
-            }
-        }
-    }
-   
-    private void switchToForgot() {
-    mode = Mode.FORGOT;
 
-    topTitle.setText("Forgot Password");
-    topSub.setText("Enter your email or username to recover your account");
-
-    // HIDE REGISTER PARTS
-    vStrutBeforeUser.setVisible(false);
-    vStrutBeforePass.setVisible(false);
-    vStrutBeforeConfirm.setVisible(false);
-    conLabelRow.setVisible(false);
-    conRow.setVisible(false);
-    createBtn.setVisible(false);
-
-    // HIDE LOGIN PARTS
-    loginBtn.setVisible(false);
-    optionsRow.setVisible(false);
-    createRowLink.setVisible(false);
-
-    userLabelRow.setVisible(false);
-    usernameField.setVisible(false);
-    passLabelRow.setVisible(false);
-    passRow.setVisible(false);
-
-    // SHOW FORGOT PARTS
-    forgotLabelRow.setVisible(true);
-    forgotRow.setVisible(true);
-    setSubmitForgotVisible(true);
-
-    // SHOW back link
-    backToLoginLink.setVisible(true);
-
-    revalidate();
-    repaint();
-}
-
-
-
-    // Use the same create account validation as your register class (simple)
     private void handleCreateAccount() {
         String u = usernameField.getText().trim();
         String p = new String(passwordField.getPassword());
         String c = new String(confirmField.getPassword());
 
-        // treat placeholders as empty
         if (u.equals("  Enter your username")) u = "";
         if (p.equals("  Enter your password")) p = "";
         if (c.equals("Re-enter password...") || c.equals("  Re-enter password")) c = "";
@@ -692,19 +532,6 @@ public class PharmaSysLogin extends JFrame {
         }
 
         JOptionPane.showMessageDialog(this, "Account Created!\nUsername: " + u);
-
-        // After creating, go back to login mode
-        switchToLogin();
-    }
-
-    private void handleForgotSubmit() {
-        String input = forgotUserField.getText().trim();
-        if (input.isEmpty() || input.equals("Enter email or username...")) {
-            JOptionPane.showMessageDialog(this, "Please enter an email or username!");
-            return;
-        }
-        JOptionPane.showMessageDialog(this,
-                "Reset instructions have been sent, check your email.");
         switchToLogin();
     }
 
@@ -739,7 +566,6 @@ public class PharmaSysLogin extends JFrame {
         return eye;
     }
 
-    // placeholder utility (keeps the behavior of your register/login placeholders)
     private void addPlaceholder(JTextComponent field, String placeholder) {
         field.setForeground(Color.GRAY);
         field.setText(placeholder);
@@ -786,7 +612,6 @@ public class PharmaSysLogin extends JFrame {
         });
     }
 
-    // ----------------- main -----------------
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> new PharmaSysLogin().setVisible(true));
     }
