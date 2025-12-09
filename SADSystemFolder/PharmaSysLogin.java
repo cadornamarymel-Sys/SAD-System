@@ -213,7 +213,7 @@ public class PharmaSysLogin extends JFrame {
             }
         });
 
-        toggleEyeBtn = new JButton("👁");
+        toggleEyeBtn = new JButton("       👁");
         toggleEyeBtn.setFocusable(false);
         toggleEyeBtn.setBorder(null);
         toggleEyeBtn.setContentAreaFilled(false);
@@ -352,27 +352,28 @@ public class PharmaSysLogin extends JFrame {
         card.add(loginBtn);
         card.add(Box.createVerticalStrut(20));
 
-        vStrutBeforeConfirm = Box.createVerticalStrut(1);
+        vStrutBeforeConfirm = Box.createVerticalStrut(-18);
         vStrutBeforeConfirm.setVisible(false);
         card.add(vStrutBeforeConfirm);
 
-        conLabelRow = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
+        conLabelRow = new JPanel(new FlowLayout(FlowLayout.LEFT, 5, 15));
         conLabelRow.setOpaque(false);
         JLabel conLbl = new JLabel("Confirm Password");
-        conLbl.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+        conLbl.setFont(new Font("Segoe UI", Font.BOLD, 12));
         conLabelRow.add(conLbl);
         conLabelRow.setVisible(false);
         card.add(conLabelRow);
 
         confirmField = new JPasswordField();
+
         addPlaceholder(confirmField, "Re-enter password...");
         conRow = createInputField(confirmField, fieldBorder, 18);
-        conRow.setMaximumSize(new Dimension(400, 35));
+        conRow.setMaximumSize(new Dimension(400, 20));
         conRow.setOpaque(false);
         toggleConfirmEyeBtn = createEyeButton(confirmField);
         conRow.add(toggleConfirmEyeBtn, BorderLayout.EAST);
         conRow.setVisible(false);
-        card.add(Box.createVerticalStrut(5));
+        card.add(Box.createVerticalStrut(-10));
         card.add(conRow);
 
         createBtn = new JButton("Sign Up") {
@@ -401,7 +402,7 @@ public class PharmaSysLogin extends JFrame {
         createBtn.setVisible(false);
 
         createBtn.addActionListener(e -> handleCreateAccount());
-        card.add(Box.createVerticalStrut(5));
+        card.add(Box.createVerticalStrut(25));
         card.add(createBtn);
 
         createRowLink = new JPanel(new FlowLayout(FlowLayout.CENTER, 3, 0));
@@ -541,7 +542,7 @@ public class PharmaSysLogin extends JFrame {
 
         row.setBorder(BorderFactory.createCompoundBorder(
                 new RoundedBorder(radius, borderColor),
-                new EmptyBorder(5, 8, 5, 8)
+                new EmptyBorder(5, 0, 5, 8)
         ));
 
         input.setBorder(null);
