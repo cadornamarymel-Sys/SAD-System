@@ -388,8 +388,15 @@ public class PharmaSysSales extends JPanel {
 
             Map<String, Double> db = new HashMap<>();
             db.put("Biogesic", 5.00);
-            db.put("Paracetamol", 3.50);
+            db.put("Paracetamol", 2.50);
             db.put("Vitamin C", 8.00);
+            db.put("Amoxicillin", 8.50);
+            db.put("Metformin", 5.00);
+            db.put("Losartan", 12.00);
+            db.put("Cetirizine", 3.50);
+            db.put("Omeprazole", 6.00);
+            db.put("Ibuprofen", 6.00);
+            db.put("Rexidol", 9.00);
 
             if (db.containsKey(query)) {
                 cart.add(new CartItem(query, db.get(query), 1));
