@@ -6,6 +6,26 @@ import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 
+class RoundedPanel extends JPanel {
+    private int radius;
+
+    public RoundedPanel(int radius) {
+        this.radius = radius;
+        setOpaque(false);
+    }
+
+    @Override
+    protected void paintComponent(Graphics g) {
+        Graphics2D g2 = (Graphics2D) g.create();
+        g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+
+        g2.setColor(getBackground());
+        g2.fillRoundRect(0, 0, getWidth(), getHeight(), radius, radius);
+
+        g2.dispose();
+        super.paintComponent(g);
+    }
+}
 public class PharmaSysDashboard extends JFrame {
 
     Color blue = new Color(79,107,201);
@@ -108,7 +128,9 @@ public class PharmaSysDashboard extends JFrame {
         // --- MODIFICATION: Search Container (TextField + Button) ---
         
         // Panel to hold the search text field and the search button
-        JPanel searchContainer = new JPanel(new BorderLayout());
+        JPanel searchContainer = new RoundedPanel(20);
+        searchContainer.setLayout(new BorderLayout());
+        searchContainer.setBackground(Color.WHITE);
         searchContainer.setPreferredSize(new Dimension(550, 40)); // Increased width to fit button
 
         // Search bar — GUARANTEED WORKING PLACEHOLDER ✅
@@ -265,7 +287,7 @@ public class PharmaSysDashboard extends JFrame {
         header.add(leftHeader, BorderLayout.WEST);
 
         //------------------------------ STAT CARDS ------------------------------//
-        JPanel statRow = new JPanel(new GridLayout(1,4,15,15));
+        JPanel statRow = new JPanel(new GridLayout(1,4,10,15));
         statRow.setOpaque(false);
         statRow.setBorder(new EmptyBorder(10,0,5,0));
 
@@ -320,8 +342,10 @@ public class PharmaSysDashboard extends JFrame {
         midRow.add(rightWrap);
 
         //------------------------------ TABLE ------------------------------//
-        JPanel tableCard = new JPanel(new BorderLayout());
+        JPanel tableCard = new RoundedPanel(20);
         tableCard.setBackground(Color.WHITE);
+        tableCard.setLayout(new BorderLayout());
+        tableCard.setBorder(new EmptyBorder(8,15,15,15));
 
         // card spacing like screenshot
         tableCard.setBorder(new EmptyBorder(8,15,15,15));
@@ -400,17 +424,8 @@ public class PharmaSysDashboard extends JFrame {
         pageContainer.add(new PharmaSysReports(), "Reports");
 
         // SETTINGS
-        JPanel settingsPage = new JPanel(new BorderLayout());
-        settingsPage.setOpaque(false);
-        settingsPage.add(
-            pageHeader(
-                "Settings",
-                "Manage your pharmacy system preferences and configurations"
-            ),
-            BorderLayout.NORTH
-        );
-        pageContainer.add(settingsPage, "Settings");
-
+        pageContainer.add(new PharmaSysSettings(), "Settings");
+        
         // ✅ SHOW DEFAULT PAGE
         cardLayout.show(pageContainer, "Dashboard");
 
@@ -668,7 +683,8 @@ public class PharmaSysDashboard extends JFrame {
 
     private JPanel statCard(String title,String value,String perc){
 
-        JPanel p = new JPanel(new BorderLayout());
+        JPanel p = new RoundedPanel(20);
+        p.setLayout(new BorderLayout());
         p.setBackground(cardGray);
         p.setBorder(new EmptyBorder(12,15,12,15));
 
@@ -692,7 +708,7 @@ public class PharmaSysDashboard extends JFrame {
         JLabel v  = new JLabel(value, SwingConstants.CENTER);
         JLabel pc = new JLabel(perc, SwingConstants.RIGHT);
 
-        t.setFont(new Font("Segoe UI", Font.PLAIN, 11));
+        t.setFont(new Font("Segoe UI", Font.BOLD, 13));
         t.setForeground(Color.DARK_GRAY);
 
         // BIG centered value like screenshot
@@ -828,8 +844,6 @@ public class PharmaSysDashboard extends JFrame {
     return p;
 
 }
-
-
         private JPanel pageHeader(String title, String subtitle) {
 
         JPanel header = new JPanel();
