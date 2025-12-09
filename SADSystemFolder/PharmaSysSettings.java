@@ -6,7 +6,6 @@ import java.awt.event.MouseEvent;
 import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
-
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 
