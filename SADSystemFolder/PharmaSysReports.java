@@ -1,5 +1,3 @@
-package SAD;
-
 import javax.swing.*;
 import javax.swing.border.*;
 import javax.swing.table.DefaultTableCellRenderer;
@@ -185,6 +183,26 @@ public class PharmaSysReports extends JPanel {
 
         JButton apply = new JButton("Apply Filter");
         stylePrimaryButton(apply);
+
+        // EXPORT ALL REPORTS BUTTON FUNCTION
+        export.addActionListener(e -> {
+            JOptionPane.showMessageDialog(
+                this,
+                "Exporting all reports...\n(You can later replace this with real export-to-PDF / Excel code.)",
+                "Export",
+                JOptionPane.INFORMATION_MESSAGE
+            );
+        });
+
+        // APPLY FILTER BUTTON FUNCTION
+        apply.addActionListener(e -> {
+            JOptionPane.showMessageDialog(
+                this,
+                "Filter applied using Start Date & End Date.\n(Connect this later to your SQL filtering.)",
+                "Filter Applied",
+                JOptionPane.INFORMATION_MESSAGE
+            );
+        });
 
         right.add(export);
         right.add(apply);
@@ -633,8 +651,8 @@ class RoundedBorder implements Border {
 
         JLabel icon = new JLabel("↗");
         icon.setFont(new Font("Segoe UI", Font.BOLD, 14));
-        icon.setForeground(new Color(40, 120, 40)); // green-ish increase color
         icon.setBorder(new EmptyBorder(0,0,0,0));
+        icon.setForeground(new Color(40, 120, 40)); // green-ish increase color
 
         topRow.add(lblTitle, BorderLayout.WEST);
         topRow.add(icon, BorderLayout.EAST);
