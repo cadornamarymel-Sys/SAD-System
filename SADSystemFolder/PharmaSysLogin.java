@@ -1,5 +1,3 @@
-package SAD;
-
 import java.awt.*;
 import java.awt.event.*;
 import java.awt.font.TextAttribute;
@@ -116,10 +114,10 @@ public class PharmaSysLogin extends JFrame {
         vStrutBeforeUser.setVisible(false);
         card.add(vStrutBeforeUser);
 
-        userLabelRow = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
+        userLabelRow = new JPanel(new FlowLayout(FlowLayout.LEFT, 5, 5));
         userLabelRow.setOpaque(false);
         JLabel userLbl = new JLabel("Username");
-        userLbl.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+        userLbl.setFont(new Font("Segoe UI", Font.BOLD, 12));
         userLabelRow.add(userLbl);
         card.add(userLabelRow);
 
@@ -127,7 +125,7 @@ public class PharmaSysLogin extends JFrame {
         styleField(usernameField, fieldBorder);
         usernameField.setBorder(BorderFactory.createCompoundBorder(
                 new RoundedBorder(18, fieldBorder),
-                new EmptyBorder(5, 8, 5, 8)
+                new EmptyBorder(5, 0, 5, 8)
         ));
 
         final String userPlaceholder = "Enter your username";
@@ -154,8 +152,8 @@ public class PharmaSysLogin extends JFrame {
                 }
             }
         });
-        usernameField.setMaximumSize(new Dimension(400, 35));
-        usernameField.setPreferredSize(new Dimension(400, 35));
+        usernameField.setMaximumSize(new Dimension(400, 40));
+        usernameField.setPreferredSize(new Dimension(400, 40));
         card.add(usernameField);
         card.add(Box.createVerticalStrut(15));
 
@@ -163,20 +161,22 @@ public class PharmaSysLogin extends JFrame {
         vStrutBeforePass.setVisible(false);
         card.add(vStrutBeforePass);
 
-        passLabelRow = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
+        passLabelRow = new JPanel(new FlowLayout(FlowLayout.LEFT, 5, 5));
         passLabelRow.setOpaque(false);
         JLabel passLbl = new JLabel("Password");
-        passLbl.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+        passLbl.setFont(new Font("Segoe UI", Font.BOLD, 12));
         passLabelRow.add(passLbl);
         card.add(passLabelRow);
 
         passRow = new JPanel(new BorderLayout());
         passRow.setOpaque(false);
-        passRow.setMaximumSize(new Dimension(400, 35));
-        passRow.setPreferredSize(new Dimension(400, 35));
+        passRow.setMaximumSize(new Dimension(400, 40));
+        passRow.setPreferredSize(new Dimension(400, 40
+    
+        ));
         passRow.setBorder(BorderFactory.createCompoundBorder(
                 new RoundedBorder(18, fieldBorder),
-                new EmptyBorder(5, 8, 5, 8)
+                new EmptyBorder(5, 0, 5, 8)
         ));
 
         passwordField = new JPasswordField();
