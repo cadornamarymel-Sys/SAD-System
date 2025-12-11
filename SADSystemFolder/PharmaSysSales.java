@@ -17,6 +17,9 @@ public class PharmaSysSales extends JPanel {
     // ================= CART SYSTEM ================= //
     private List<CartItem> cart = new ArrayList<>();
 
+    private ImageIcon loadIcon(String fileName) {
+    return new ImageIcon(getClass().getResource("/SAD/img/" + fileName));
+}
     private static class CartItem {
         String name;
         double price;
@@ -202,8 +205,8 @@ public class PharmaSysSales extends JPanel {
 
         // PAYMENT CARD
         JPanel paymentCard = cardPanel("Payment Summary");
-        paymentCard.setBackground(new Color(245, 248, 255));
-        paymentCard.setBorder(new EmptyBorder(12, 14, 18, 14));
+        paymentCard.setBackground(new Color(236, 243, 249));
+        paymentCard.setBorder(new EmptyBorder(12, 14, 14, 14));
 
         JPanel summary = new JPanel();
         summary.setLayout(new BoxLayout(summary, BoxLayout.Y_AXIS));
@@ -248,29 +251,30 @@ public class PharmaSysSales extends JPanel {
         JComboBox<String> pay = new JComboBox<>();
         pay.addItem("Cash");
         pay.addItem("GCash");
-        pay.setBackground(Color.WHITE);
-        pay.setBorder(new LineBorder(new Color(210, 210, 210), 1, true));
+        pay.setBackground(new Color(236, 243, 249));
+        pay.setBorder(new LineBorder(Color. GRAY, 1, true));
         pay.setPreferredSize(new Dimension(0, 32));
         pay.setMaximumSize(new Dimension(Integer.MAX_VALUE, 32));
 
         JLabel payLabel = smallLabel("Payment Method");
-        payLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
+        payLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
         payLabel.setFont(new Font("Segoe UI", Font.BOLD, 12));
         summary.add(payLabel);
         summary.add(pay);
 
-        summary.add(Box.createVerticalStrut(8));
+        summary.add(Box.createVerticalStrut(20));
 
         JLabel amountLabel = smallLabel("Amount Received");
-        amountLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
+        amountLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
         amountLabel.setFont(new Font("Segoe UI", Font.BOLD, 12));
         summary.add(amountLabel);
 
         JTextField received = new JTextField("0.00");
         received.setOpaque(true);
-        received.setBackground(Color.WHITE);
+        received.setBackground(new Color (236, 243, 249));
+        received.setForeground(Color. BLACK);
         received.setBorder(new CompoundBorder(
-                new LineBorder(new Color(210, 210, 210), 1, true),
+                new LineBorder(Color.LIGHT_GRAY , 1, true),
                 new EmptyBorder(6, 10, 6, 10)
         ));
         summary.add(received);
@@ -278,13 +282,20 @@ public class PharmaSysSales extends JPanel {
         summary.add(Box.createVerticalStrut(15));
 
         // Complete sale button
-        complete = new JButton("🛒 Complete Sale - ₱0.00");
+        complete = new JButton("Complete Sale - ₱0.00");
+        complete.setIcon(loadIcon("complete sale.png"));
+        complete.setHorizontalAlignment(SwingConstants.LEFT);
+        complete.setIconTextGap(10); // space between icon & text
         complete.setBackground(blue);
-        complete.setForeground(Color.WHITE);
+        complete.setForeground(Color.BLACK);
         complete.setFocusPainted(false);
         complete.setPreferredSize(new Dimension(0, 44));
         complete.setFont(new Font("Segoe UI", Font.BOLD, 13));
         complete.setMaximumSize(new Dimension(Integer.MAX_VALUE, 70));
+
+        complete.setHorizontalAlignment(SwingConstants.CENTER);
+        complete.setHorizontalTextPosition(SwingConstants.RIGHT);
+        complete.setIconTextGap(10);
 
         complete.addActionListener(e -> {
             String customer = nameField.getText().equals(" Enter customer name") ? "Walk-in Customer" : nameField.getText();
@@ -308,18 +319,25 @@ public class PharmaSysSales extends JPanel {
         });
 
         // Print receipt button
-        JButton print = new JButton("🖨️ Print Receipt");
+        JButton print = new JButton("Print Receipt");
+        print.setIcon(loadIcon("printer.png"));
+        print.setHorizontalAlignment(SwingConstants.LEFT);
+        print.setIconTextGap(10);
         print.setFocusPainted(false);
         print.setPreferredSize(new Dimension(0, 44));
         print.setMaximumSize(new Dimension(Integer.MAX_VALUE, 70));
         print.setBorder(new LineBorder(new Color(40, 60, 160), 2, true));
-        print.setBackground(new Color(245, 248, 255));
+        print.setBackground(new Color(236, 243, 249));
         print.setFont(new Font("Segoe UI", Font.BOLD, 13));
+
+        print.setHorizontalAlignment(SwingConstants.CENTER);
+        print.setHorizontalTextPosition(SwingConstants.RIGHT);
+        print.setIconTextGap(10);
 
         print.addActionListener(e -> {
             JOptionPane.showMessageDialog(
                     this,
-                    "🖨️ Printing receipt...\n(This is a placeholder.)",
+                    "Printing receipt...\n(This is a placeholder.)",
                     "Receipt",
                     JOptionPane.INFORMATION_MESSAGE
             );
@@ -347,7 +365,7 @@ public class PharmaSysSales extends JPanel {
         // Add to summary
         summary.add(buttonPanel);
 
-        paymentCard.add(summary, BorderLayout.NORTH);
+        paymentCard.add(summary, BorderLayout.CENTER);
         paymentCard.add(buttonPanel, BorderLayout.SOUTH);
 
         bottomRow.add(cartCard);
@@ -496,7 +514,7 @@ public class PharmaSysSales extends JPanel {
         vatLabelRight.setText("₱" + String.format("%.2f", vat));
         totalLabelRight.setText("₱" + String.format("%.2f", total));
 
-        complete.setText("🛒 Complete Sale - ₱" + String.format("%.2f", total));
+        complete.setText("Complete Sale - ₱" + String.format("%.2f", total));
 
         cartList.revalidate();
         cartList.repaint();
