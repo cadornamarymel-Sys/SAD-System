@@ -23,6 +23,38 @@ public class PharmaSysReports extends JPanel {
     private CardLayout innerCards;
     private JPanel innerContainer;
 
+    private ImageIcon loadChart(String fileName) {
+    return new ImageIcon(getClass().getResource("/SAD/img/" + fileName));
+}
+
+    private JPanel chartImagePanel(String title, String imagePath) {
+
+    JPanel panel = new JPanel(new BorderLayout());
+    panel.setOpaque(true);
+    panel.setBackground(Color.WHITE);
+    panel.setBorder(new CompoundBorder(
+            new LineBorder(new Color(220,220,220), 1, true),
+            new EmptyBorder(12,12,12,12)
+    ));
+
+    // Title label (top)
+    JLabel lblTitle = new JLabel(title);
+    lblTitle.setFont(new Font("Segoe UI", Font.BOLD, 14));
+    panel.add(lblTitle, BorderLayout.NORTH);
+
+    // Image label (center)
+    ImageIcon icon = new ImageIcon(imagePath);
+
+    // Scale image to fit container
+    Image scaled = icon.getImage().getScaledInstance(1080, 250, Image.SCALE_SMOOTH);
+    JLabel imgLabel = new JLabel(new ImageIcon(scaled));
+    imgLabel.setHorizontalAlignment(SwingConstants.CENTER);
+
+    panel.add(imgLabel, BorderLayout.CENTER);
+
+    return panel;
+}
+
     public PharmaSysReports() {
         setLayout(new BorderLayout());
         setOpaque(false);
@@ -60,6 +92,34 @@ public class PharmaSysReports extends JPanel {
         center.add(innerContainer, BorderLayout.CENTER);
         wrapper.add(center, BorderLayout.CENTER);
         add(wrapper, BorderLayout.CENTER);
+    }
+
+        private JPanel monthlySummaryImagePanel() {
+
+        JPanel panel = new JPanel(new BorderLayout());
+        panel.setOpaque(true);
+        panel.setBackground(Color.WHITE);
+        panel.setBorder(new CompoundBorder(
+                new LineBorder(new Color(220,220,220), 1, true),
+                new EmptyBorder(12,12,12,12)
+        ));
+
+         // Title
+        JLabel lblTitle = new JLabel("6-Month Sales & Profit Overview");
+        lblTitle.setFont(new Font("Segoe UI", Font.BOLD, 14));
+        panel.add(lblTitle, BorderLayout.NORTH);
+
+        // Image (CHANGE PATH)
+        ImageIcon icon = new ImageIcon("SAD/img/6-MonthSales.jpg");
+
+        // Resize here
+        Image scaled = icon.getImage().getScaledInstance(1080, 180, Image.SCALE_SMOOTH);
+        JLabel imgLabel = new JLabel(new ImageIcon(scaled));
+        imgLabel.setHorizontalAlignment(SwingConstants.CENTER);
+
+        panel.add(imgLabel, BorderLayout.CENTER);
+
+        return panel;
     }
 
     private void addPlaceholder(JTextField field, String placeholder) {
@@ -340,10 +400,13 @@ public class PharmaSysReports extends JPanel {
         // ------------------ MAIN WHITE ROUNDED CONTAINER (chart only) ------------------
         JPanel roundedCard = createCardedPanel();   // white rounded panel
         roundedCard.setLayout(new BorderLayout());
-        roundedCard.setBorder(new EmptyBorder(10,10,10,10));
+        roundedCard.setBorder(new EmptyBorder(5,5,5,5));
 
-        roundedCard.add(chartPlaceholder("Hourly Sales Trend (Sales $ vs Transactions)"),
-                        BorderLayout.CENTER);
+        roundedCard.add(chartImagePanel(
+        "Hourly Sales Trend (Sales $ vs Transactions)",
+        "SAD/img/HourlySalesTrend.jpg"
+        ), BorderLayout.CENTER);
+
 
         // Wrapper so chart moves down properly
         JPanel centerWrap = new JPanel(new BorderLayout());
@@ -368,15 +431,9 @@ public class PharmaSysReports extends JPanel {
         // ============================================================
         JPanel chartCard = createCardedPanel();
         chartCard.setLayout(new BorderLayout());
-        chartCard.setBorder(new EmptyBorder(16,16,16,16));
+        chartCard.setBorder(new EmptyBorder(5,5,5,5));
 
-        JLabel chartTitle = new JLabel("6-Month Sales & Profit Overview");
-        chartTitle.setFont(new Font("Segoe UI", Font.BOLD, 14));
-        chartTitle.setBorder(new EmptyBorder(0,0,12,0));
-
-        chartCard.add(chartTitle, BorderLayout.NORTH);
-        chartCard.add(chartPlaceholder("6-Month Sales & Profit Overview Chart Area"),
-                BorderLayout.CENTER);
+        chartCard.add(monthlySummaryImagePanel(), BorderLayout.CENTER);
 
         root.add(chartCard);
         root.add(Box.createVerticalStrut(10)); // spacing between cards
