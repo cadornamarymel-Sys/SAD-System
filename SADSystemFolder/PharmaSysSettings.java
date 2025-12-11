@@ -6,6 +6,7 @@ import java.awt.event.MouseEvent;
 import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
+
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 
@@ -54,6 +55,28 @@ public class PharmaSysSettings extends JPanel {
 
     private final Map<String, Map<String, String>> translations = new HashMap<>();
 
+    // ------------------- NEW: explicit text field variables -------------------
+    // PROFILE
+    private JTextField firstNameField;
+    private JTextField lastNameField;
+    private JTextField emailField;            // profile email (label: "Email Address")
+    private JTextField phoneField;            // profile phone (label: "Phone Number" first occurrence)
+    private JTextField roleField;
+
+    // PHARMACY
+    private JTextField pharmacyNameField;
+    private JTextField licenseNumberField;
+    private JTextField addressField;
+    private JTextField cityField;
+    private JTextField zipField;
+    private JTextField pharmacyPhoneField;    // pharmacy phone (label: "Phone Number" second occurrence)
+    private JTextField pharmacyEmailField;    // pharmacy email (label: "Email")
+
+    // SECURITY
+    private JTextField currentPassField;
+    private JTextField newPassField;
+    private JTextField confirmPassField;
+
     private void initTranslations() {
         // English
         Map<String, String> en = new HashMap<>();
@@ -90,24 +113,24 @@ public class PharmaSysSettings extends JPanel {
         translations.put("Spanish", sp);
     }
 
-        private void applyLanguage(String language) {
+    private void applyLanguage(String language) {
         if (!translations.containsKey(language)) return;
         Map<String, String> t = translations.get(language);
 
         // Example for Settings panel labels
         // You need references to the labels (store them in fields)
-        profileHeading.setText(t.get("Profile Information"));
-        pharmacyHeading.setText(t.get("Pharmacy Details"));
-        notificationsHeading.setText(t.get("Notification Settings"));
-        securityHeading.setText(t.get("Security Settings"));
-        appearanceHeading.setText(t.get("Appearance Settings"));
+        profileHeading.setText(t.getOrDefault("Profile Information", "Profile Information"));
+        pharmacyHeading.setText(t.getOrDefault("Pharmacy Details", "Pharmacy Details"));
+        notificationsHeading.setText(t.getOrDefault("Notification Settings", "Notification Settings"));
+        securityHeading.setText(t.getOrDefault("Security Settings", "Security Settings"));
+        appearanceHeading.setText(t.getOrDefault("Appearance Settings", "Appearance Settings"));
 
         // Similarly for tab labels
-        profileTabLabel.setText(t.get("Profile"));
-        pharmacyTabLabel.setText(t.get("Pharmacy"));
-        notificationsTabLabel.setText(t.get("Notifications"));
-        securityTabLabel.setText(t.get("Security"));
-        appearanceTabLabel.setText(t.get("Appearance"));
+        profileTabLabel.setText(t.getOrDefault("Profile", "Profile"));
+        pharmacyTabLabel.setText(t.getOrDefault("Pharmacy", "Pharmacy"));
+        notificationsTabLabel.setText(t.getOrDefault("Notifications", "Notifications"));
+        securityTabLabel.setText(t.getOrDefault("Security", "Security"));
+        appearanceTabLabel.setText(t.getOrDefault("Appearance", "Appearance"));
 
         // Repeat for other tables: Dashboard, Inventory, Sales, Reports
     }
@@ -144,6 +167,13 @@ public class PharmaSysSettings extends JPanel {
         TabButton notificationsTab = new TabButton("Notifications", false);
         TabButton securityTab = new TabButton("Security", false);
         TabButton appearanceTab = new TabButton("Appearance", false);
+
+        // keep references for translation usage (optional)
+        profileTabLabel = new JLabel("Profile");
+        pharmacyTabLabel = new JLabel("Pharmacy");
+        notificationsTabLabel = new JLabel("Notifications");
+        securityTabLabel = new JLabel("Security");
+        appearanceTabLabel = new JLabel("Appearance");
 
         // Tab click handlers
         profileTab.addMouseListener(new MouseAdapter() {
@@ -189,6 +219,7 @@ public class PharmaSysSettings extends JPanel {
         RoundedButton cancelBtn = new RoundedButton("Cancel", false);
         cancelBtn.addActionListener(e -> {
             for (JTextField tf : allFields) {
+                // clear field; focusLost will restore placeholder text
                 tf.setText("");
             }
 
@@ -206,51 +237,76 @@ public class PharmaSysSettings extends JPanel {
         RoundedButton saveBtn = new RoundedButton("Save Changes", true);
         saveBtn.addActionListener(e -> {
 
-        // Validate all text fields
-        for (JTextField tf : allFields) {
-            if (tf.getText().trim().isEmpty()) {
-                JOptionPane.showMessageDialog(this,
-                        "Please complete all fields before saving.",
+            // 👉 STORE ALL PROFILE FIELDS
+String first = firstNameField.getText().trim();
+String last = lastNameField.getText().trim();
+String email = emailField.getText().trim();
+String phone = phoneField.getText().trim();
+String role = roleField.getText().trim();
+
+// 👉 STORE ALL PHARMACY FIELDS
+String pharmName = pharmacyNameField.getText().trim();
+String lic = licenseNumberField.getText().trim();
+String addr = addressField.getText().trim();
+String city = cityField.getText().trim();
+String zip = zipField.getText().trim();
+String pharmPhone = pharmacyPhoneField.getText().trim();
+String pharmEmail = pharmacyEmailField.getText().trim();
+
+// 👉 STORE SECURITY FIELDS
+String curPass = currentPassField.getText().trim();
+String newPass = newPassField.getText().trim();
+String confPass = confirmPassField.getText().trim();
+
+
+            // Validate all text fields (treat placeholder as empty)
+            for (JTextField tf : allFields) {
+                String text = tf.getText() == null ? "" : tf.getText().trim();
+                Object ph = tf.getClientProperty("placeholder");
+                String placeholder = ph == null ? "" : ph.toString();
+                if (text.isEmpty() || text.equals(placeholder)) {
+                    JOptionPane.showMessageDialog(this,
+                            "Please complete all fields before saving.",
+                            "Validation Error",
+                            JOptionPane.ERROR_MESSAGE);
+                    return;
+                }
+            }
+
+            // Validate dropdowns
+            if (languageCombo.getSelectedItem() == null ||
+                timezoneCombo.getSelectedItem() == null ||
+                dateFormatCombo.getSelectedItem() == null ||
+                currencyCombo.getSelectedItem() == null) {
+
+                JOptionPane.showMessageDialog(
+                        this,
+                        "Please complete all appearance settings.",
                         "Validation Error",
-                        JOptionPane.ERROR_MESSAGE);
+                        JOptionPane.ERROR_MESSAGE
+                );
                 return;
             }
-        }
+            // ✅ Save the appearance settings
+            savedLanguage = languageCombo.getSelectedItem().toString();
+            savedTimezone = timezoneCombo.getSelectedItem().toString();
+            savedDateFormat = dateFormatCombo.getSelectedItem().toString();
+            savedCurrency = currencyCombo.getSelectedItem().toString();
 
-        // Validate dropdowns
-        if (languageCombo.getSelectedItem() == null ||
-            timezoneCombo.getSelectedItem() == null ||
-            dateFormatCombo.getSelectedItem() == null ||
-            currencyCombo.getSelectedItem() == null) {
+            // Apply language immediately
+            applyLanguage(savedLanguage);
 
-            JOptionPane.showMessageDialog(
-                    this,
-                    "Please complete all appearance settings.",
-                    "Validation Error",
-                    JOptionPane.ERROR_MESSAGE
-            );
-            return;
-        }
-        // ✅ Save the appearance settings
-        savedLanguage = languageCombo.getSelectedItem().toString();
-        savedTimezone = timezoneCombo.getSelectedItem().toString();
-        savedDateFormat = dateFormatCombo.getSelectedItem().toString();
-        savedCurrency = currencyCombo.getSelectedItem().toString();
-
-        // Apply language immediately
-        applyLanguage(savedLanguage);
-
-        JOptionPane.showMessageDialog(this,
-                "Settings saved successfully!\n" +
-                "Language: " + savedLanguage + "\n" +
-                "Timezone: " + savedTimezone + "\n" +
-                "Date Format: " + savedDateFormat + "\n" +
-                "Currency: " + savedCurrency,
-                "Saved",
-                JOptionPane.INFORMATION_MESSAGE);
-    });
-        saveBtn.setBackground(new Color(37, 99, 235));   
-        saveBtn.setForeground(Color.WHITE);             
+            JOptionPane.showMessageDialog(this,
+                    "Settings saved successfully!\n" +
+                    "Language: " + savedLanguage + "\n" +
+                    "Timezone: " + savedTimezone + "\n" +
+                    "Date Format: " + savedDateFormat + "\n" +
+                    "Currency: " + savedCurrency,
+                    "Saved",
+                    JOptionPane.INFORMATION_MESSAGE);
+        });
+        saveBtn.setBackground(new Color(37, 99, 235));
+        saveBtn.setForeground(Color.WHITE);
         saveBtn.setFocusPainted(false);
         saveBtn.setBorderPainted(false);
         saveBtn.setOpaque(true);
@@ -315,41 +371,41 @@ public class PharmaSysSettings extends JPanel {
 
         // Avatar circle (simple)
         avatarPreview = new JPanel() {
-    BufferedImage image;
+            BufferedImage image;
 
-    @Override
-    protected void paintComponent(Graphics g) {
-        super.paintComponent(g);
-        int size = Math.min(getWidth(), getHeight());
-        Graphics2D g2 = (Graphics2D) g.create();
-        g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+            @Override
+            protected void paintComponent(Graphics g) {
+                super.paintComponent(g);
+                int size = Math.min(getWidth(), getHeight());
+                Graphics2D g2 = (Graphics2D) g.create();
+                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
-        if (image != null) {
-            g2.setClip(new java.awt.geom.Ellipse2D.Float(0, 0, size, size));
-            g2.drawImage(image, 0, 0, size, size, null);
-        } else {
-            g2.setColor(blue);
-            g2.fillOval(0, 0, size, size);
+                if (image != null) {
+                    g2.setClip(new java.awt.geom.Ellipse2D.Float(0, 0, size, size));
+                    g2.drawImage(image, 0, 0, size, size, null);
+                } else {
+                    g2.setColor(blue);
+                    g2.fillOval(0, 0, size, size);
 
-            g2.setColor(Color.WHITE);
-            g2.setFont(new Font("Segoe UI", Font.BOLD, 28));
-            FontMetrics fm = g2.getFontMetrics();
-            String letter = "A";
-            int w = fm.stringWidth(letter);
-            int h = fm.getAscent();
+                    g2.setColor(Color.WHITE);
+                    g2.setFont(new Font("Segoe UI", Font.BOLD, 28));
+                    FontMetrics fm = g2.getFontMetrics();
+                    String letter = "A";
+                    int w = fm.stringWidth(letter);
+                    int h = fm.getAscent();
 
-            g2.drawString(letter, (size - w) / 2, (size + h) / 2 - 4);
-        }
-        g2.dispose();
-    }
+                    g2.drawString(letter, (size - w) / 2, (size + h) / 2 - 4);
+                }
+                g2.dispose();
+            }
 
-    public void setImage(File file) {
-        try {
-            image = ImageIO.read(file);
-            repaint();
-        } catch (Exception ignored) {}
-    }
-};
+            public void setImage(File file) {
+                try {
+                    image = ImageIO.read(file);
+                    repaint();
+                } catch (Exception ignored) {}
+            }
+        };
         avatarPreview.setPreferredSize(new Dimension(96, 96));
 
         // avatarRight panel (was accidentally removed earlier) ------------------------------------------------
@@ -644,10 +700,9 @@ public class PharmaSysSettings extends JPanel {
         card.add(Box.createVerticalStrut(12));
 
         languageCombo = new JComboBox<>(new String[]{
-        "English (US)",
-        "Filipino",
-        "Spanish"
-
+                "English (US)",
+                "Filipino",
+                "Spanish"
         });
 
         timezoneCombo = new JComboBox<>(new String[]{
@@ -709,11 +764,48 @@ public class PharmaSysSettings extends JPanel {
         l.setAlignmentX(Component.LEFT_ALIGNMENT);
 
         JTextField tf = new JTextField(placeholder);
+        // store placeholder so validation can treat it as empty
+        tf.putClientProperty("placeholder", placeholder);
         allFields.add(tf);
         tf.setFont(normalFont);
         tf.setBorder(BorderFactory.createEmptyBorder(8, 10, 8, 10));
         tf.setMaximumSize(new Dimension(Integer.MAX_VALUE, 32));
         tf.setForeground(Color.DARK_GRAY);
+
+        // Attach to correct variable based on label and occurrence
+        // The logic relies on the tab construction order (Profile tab built before Pharmacy tab)
+        if ("First Name".equals(label)) {
+            firstNameField = tf;
+        } else if ("Last Name".equals(label)) {
+            lastNameField = tf;
+        } else if ("Email Address".equals(label)) {
+            emailField = tf;
+        } else if ("Phone Number".equals(label)) {
+            // first occurrence -> profile phone, second occurrence -> pharmacy phone
+            if (phoneField == null) phoneField = tf;
+            else pharmacyPhoneField = tf;
+        } else if ("Role".equals(label)) {
+            roleField = tf;
+        } else if ("Pharmacy Name".equals(label)) {
+            pharmacyNameField = tf;
+        } else if ("License Number".equals(label)) {
+            licenseNumberField = tf;
+        } else if ("Address".equals(label)) {
+            addressField = tf;
+        } else if ("City".equals(label)) {
+            cityField = tf;
+        } else if ("Zip Code".equals(label)) {
+            zipField = tf;
+        } else if ("Email".equals(label)) {
+            // this label refers to pharmacy email in your Pharmacy tab
+            pharmacyEmailField = tf;
+        } else if ("Current Password".equals(label)) {
+            currentPassField = tf;
+        } else if ("New Password".equals(label)) {
+            newPassField = tf;
+        } else if ("Confirm Password".equals(label)) {
+            confirmPassField = tf;
+        }
 
         // Placeholder behavior
         tf.addFocusListener(new java.awt.event.FocusAdapter() {
@@ -808,30 +900,30 @@ public class PharmaSysSettings extends JPanel {
 
     // ---------------- Utility UI Builders ----------------
 
-        private JPanel keyValueDropdown(String key, JComboBox<String> combo) {
-            JPanel p = new JPanel(new BorderLayout());
-            p.setOpaque(false);
-            p.setBorder(new EmptyBorder(8, 6, 8, 6));
+    private JPanel keyValueDropdown(String key, JComboBox<String> combo) {
+        JPanel p = new JPanel(new BorderLayout());
+        p.setOpaque(false);
+        p.setBorder(new EmptyBorder(8, 6, 8, 6));
 
-            JLabel k = new JLabel(key);
-            k.setFont(boldFont);
+        JLabel k = new JLabel(key);
+        k.setFont(boldFont);
 
-            combo.setFont(normalFont);
-            combo.setPreferredSize(new Dimension(180, 28));
+        combo.setFont(normalFont);
+        combo.setPreferredSize(new Dimension(180, 28));
 
-            p.add(k, BorderLayout.WEST);
-            p.add(combo, BorderLayout.EAST);
+        p.add(k, BorderLayout.WEST);
+        p.add(combo, BorderLayout.EAST);
 
-            JSeparator sep = new JSeparator();
-            sep.setForeground(new Color(230, 230, 230));
+        JSeparator sep = new JSeparator();
+        sep.setForeground(new Color(230, 230, 230));
 
-            JPanel outer = new JPanel(new BorderLayout());
-            outer.setOpaque(false);
-            outer.add(p, BorderLayout.CENTER);
-            outer.add(sep, BorderLayout.SOUTH);
+        JPanel outer = new JPanel(new BorderLayout());
+        outer.setOpaque(false);
+        outer.add(p, BorderLayout.CENTER);
+        outer.add(sep, BorderLayout.SOUTH);
 
-            return outer;
-        }
+        return outer;
+    }
     // ------------------- Custom Components -------------------
 
     /**
@@ -1022,8 +1114,8 @@ public class PharmaSysSettings extends JPanel {
             int h = getHeight();
             int arc = 14;
             if (primary) {
-            g2.setColor(getBackground());    // use actual background
-            g2.fillRoundRect(0, 0, w, h, arc, arc);
+                g2.setColor(getBackground());    // use actual background
+                g2.fillRoundRect(0, 0, w, h, arc, arc);
             } else {
                 g2.setColor(new Color(235, 238, 244));
                 g2.fillRoundRect(0, 0, w, h, arc, arc);
