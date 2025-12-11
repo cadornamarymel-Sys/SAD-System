@@ -55,36 +55,81 @@ public class PharmaSysDashboard extends JFrame {
 
         //------------------------------ SIDEBAR ------------------------------//
         JPanel sidebar = new JPanel();
-        sidebar.setPreferredSize(new Dimension(250,0));
+        sidebar.setPreferredSize(new Dimension(205,0));
         sidebar.setBackground(blue);
         sidebar.setLayout(new BoxLayout(sidebar,BoxLayout.Y_AXIS));
-        sidebar.setBorder(new EmptyBorder(20,5,15,15));
+        sidebar.setBorder(new EmptyBorder(20,15,15,15));
+
+        // Panel ONLY for Admin text so it can be moved independently
+        JPanel adminPanel = new JPanel();
+        adminPanel.setLayout(new BoxLayout(adminPanel, BoxLayout.Y_AXIS));
+        adminPanel.setOpaque(false);
+
+        // Move Admin + Admin/Pharmacist slightly to the LEFT
+        adminPanel.setBorder(new EmptyBorder(0, 0, 0, 20)); // ← adjust LEFT padding here
+
+        // Load icon
+        ImageIcon adminRaw = new ImageIcon(getClass().getResource("/SAD/img/admin.png"));
+        Image adminScaled = adminRaw.getImage().getScaledInstance(28, 28, Image.SCALE_SMOOTH);
+        ImageIcon adminIcon = new ImageIcon(adminScaled);
+
+        JLabel adminIconLbl = new JLabel(adminIcon);
+        adminIconLbl.setBorder(new EmptyBorder(0, 0, 0, 10)); // spacing between icon and text
+
+        // Text block (Admin + Admin/Pharmacist)
+        JPanel adminTextBlock = new JPanel();
+        adminTextBlock.setLayout(new BoxLayout(adminTextBlock, BoxLayout.Y_AXIS));
+        adminTextBlock.setOpaque(false);
 
         JLabel logo = new JLabel("Admin");
-        logo.setFont(new Font("Segoe UI",Font.BOLD,16));
+        logo.setFont(new Font("Segoe UI", Font.BOLD, 16));
         logo.setForeground(Color.WHITE);
 
-        JLabel subtitle = new JLabel("Admin/Pharmasist");
-        subtitle.setFont(new Font("Segoe UI",Font.PLAIN,11));
+        JLabel subtitle = new JLabel("Admin/Pharmacist");
+        subtitle.setFont(new Font("Segoe UI", Font.PLAIN, 11));
         subtitle.setForeground(Color.BLACK);
 
-        sidebar.add(logo);
-        sidebar.add(subtitle);
-        sidebar.add(Box.createVerticalStrut(30));
-        sidebar.setPreferredSize(new Dimension(200,30));
+        adminTextBlock.add(logo);
+        adminTextBlock.add(subtitle);
 
-        JPanel dashboardButton = sideBtn("Dashboard",true);
-        JPanel inventoryButton = sideBtn("Inventory",false);
-        JPanel salesButton = sideBtn("Sales",false);
-        JPanel reportsButton = sideBtn("Reports",false);
-        JPanel settingsButton = sideBtn("Settings",false);
-        JPanel logoutPanel = sideBtn("Log out", false);
+        JPanel adminRow = new JPanel();
+        adminRow.setLayout(new BoxLayout(adminRow, BoxLayout.X_AXIS));
+        adminRow.setOpaque(false);
+
+        // Reduce spacing between icon + text
+        adminRow.add(Box.createRigidArea(new Dimension(0, 0)));
+
+        adminRow.add(adminIconLbl);
+
+        // Reduce gap between icon and text to move text left too
+        adminRow.add(Box.createRigidArea(new Dimension(5, 0)));
+
+        adminRow.add(adminTextBlock);
+
+        adminPanel.add(adminRow);
+
+        // Add to sidebar
+        sidebar.add(adminPanel);
+        sidebar.add(Box.createVerticalStrut(50));
+        
+        JPanel dashboardButton = sideBtn(" Dashboard", false, "/SAD/img/Icon (1).png");
+        JPanel inventoryButton = sideBtn(" Inventory", false, "/SAD/img/Icon (2).png");
+        JPanel salesButton = sideBtn(" Sales", false, "/SAD/img/Icon (3).png");
+        JPanel reportsButton = sideBtn(" Reports", false, "/SAD/img/Icon (4).png");
+        JPanel settingsButton = sideBtn(" Settings", false, "/SAD/img/Icon (5).png");
+        JPanel logoutPanel = sideBtn(" Log out", false, "/SAD/img/Icon (6).png");
+
         
         sidebar.add(dashboardButton);
+        sidebar.add(Box.createVerticalStrut(15));
         sidebar.add(inventoryButton);
+        sidebar.add(Box.createVerticalStrut(15));
         sidebar.add(salesButton);
+        sidebar.add(Box.createVerticalStrut(15));
         sidebar.add(reportsButton);
+        sidebar.add(Box.createVerticalStrut(15));
         sidebar.add(settingsButton);
+        sidebar.add(Box.createVerticalStrut(15));
 
         // ✅ REAL LOG OUT BUTTON
         sidebar.add(logoutPanel);
@@ -106,24 +151,42 @@ public class PharmaSysDashboard extends JFrame {
 
 
         // ✅ LEFT SIDE: Logo + Search Container
-        JPanel leftBar = new JPanel(new FlowLayout(FlowLayout.LEFT,17,0));
+        JPanel leftBar = new JPanel(new FlowLayout(FlowLayout.LEFT,0,0));
         leftBar.setOpaque(false);
+        leftBar.setBorder(new EmptyBorder(0,-5,0,0));
 
-        // Logo panel
+        // ================= LOGO + TITLE ================= //
         JPanel logoPanel = new JPanel();
         logoPanel.setOpaque(false);
-        logoPanel.setLayout(new BoxLayout(logoPanel, BoxLayout.Y_AXIS));
+        logoPanel.setLayout(new BoxLayout(logoPanel, BoxLayout.X_AXIS));
 
-        JLabel topLogo = new JLabel("    PharmaSys");
-        topLogo.setFont(new Font("Segoe UI", Font.BOLD, 23));
-        topLogo.setForeground(Color.WHITE);
+        // Load and resize logo
+        ImageIcon rawIcon = new ImageIcon(getClass().getResource("/SAD/img/Dashboard (1).jpg"));
+        Image scaledImg = rawIcon.getImage().getScaledInstance(50, 40, Image.SCALE_SMOOTH);
+        ImageIcon logoIcon = new ImageIcon(scaledImg);
 
-        JLabel topSub = new JLabel("        Pharmacy Management");
-        topSub.setFont(new Font("Segoe UI", Font.PLAIN, 12));
-        topSub.setForeground(Color.BLACK);
+        JLabel logoImg = new JLabel(logoIcon);
 
-        logoPanel.add(topLogo);
-        logoPanel.add(topSub);
+        // Text block (PharmaSys + Pharmacy Management)
+        JPanel textBlock = new JPanel();
+        textBlock.setOpaque(false);
+        textBlock.setLayout(new BoxLayout(textBlock, BoxLayout.Y_AXIS));
+
+        JLabel title = new JLabel(" PharmaSys");
+        title.setFont(new Font("Segoe UI", Font.BOLD, 23));
+        title.setForeground(Color.WHITE);
+
+        JLabel subtitleTxt = new JLabel("  Pharmacy Management");
+        subtitleTxt.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+        subtitleTxt.setForeground(Color.BLACK);
+
+        textBlock.add(title);
+        textBlock.add(subtitleTxt);
+
+        // Add image + text side-by-side
+        logoPanel.add(logoImg);
+        logoPanel.add(Box.createHorizontalStrut(0)); // Spacing
+        logoPanel.add(textBlock);
         
         // --- MODIFICATION: Search Container (TextField + Button) ---
         
@@ -135,7 +198,7 @@ public class PharmaSysDashboard extends JFrame {
 
         // Search bar — GUARANTEED WORKING PLACEHOLDER ✅
         JTextField search = new JTextField();
-        search.setBorder(new EmptyBorder(5,20,5,10));
+        search.setBorder(new EmptyBorder(5,15,5,10));
         search.setPreferredSize(new Dimension(480,40)); // Adjusted preferred size
 
         String placeholder = "Search for anything here...";
@@ -226,7 +289,8 @@ public class PharmaSysDashboard extends JFrame {
 
         // Add both to left of top bar
         leftBar.add(logoPanel);
-        leftBar.add(searchContainer); // Using the new container
+        leftBar.add(Box.createHorizontalStrut(13)); // adjust spacing
+        leftBar.add(searchContainer);
 
         // ✅ RIGHT SIDE
         JPanel rightPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
@@ -238,7 +302,6 @@ public class PharmaSysDashboard extends JFrame {
         greeting.setForeground(Color.WHITE);
 
         rightPanel.add(greeting);
-
 
         // Apply to topBar
         topBar.add(leftBar, BorderLayout.WEST);
@@ -569,7 +632,7 @@ public class PharmaSysDashboard extends JFrame {
 }
 
 
-    private JPanel sideBtn(String name, boolean active){
+private JPanel sideBtn(String name, boolean active, String iconPath) {
 
         final boolean[] pressed = { false };
 
@@ -599,14 +662,26 @@ public class PharmaSysDashboard extends JFrame {
             }
         };
 
-        p.setMaximumSize(new Dimension(320,30));
+        p.setMaximumSize(new Dimension(320,35));
         p.setLayout(new FlowLayout(FlowLayout.LEFT));
         p.setOpaque(false);
         p.setBackground(active ? bgGray : normalColor);
 
         JLabel lbl = new JLabel(name);
-        lbl.setFont(new Font("Segoe UI",Font.BOLD,13));
+        lbl.setFont(new Font("Segoe UI",Font.BOLD,15));
         lbl.setForeground(Color.BLACK);
+
+        // ----- LOAD ICON -----
+        ImageIcon rawIcon = new ImageIcon(getClass().getResource(iconPath));
+
+        // Scale icon to 18×18
+        Image scaledImg = rawIcon.getImage().getScaledInstance(18, 18, Image.SCALE_SMOOTH);
+        ImageIcon finalIcon = new ImageIcon(scaledImg);
+
+        JLabel iconLbl = new JLabel(finalIcon);
+        iconLbl.setBorder(new EmptyBorder(0, 5, 0, 10)); // spacing before text
+
+        p.add(iconLbl);
 
         p.add(lbl);
 
@@ -672,8 +747,8 @@ public class PharmaSysDashboard extends JFrame {
                 p.repaint();
 
                 // ✅ PAGE SWITCH
-                cardLayout.show(pageContainer, name);
-                dashboardLbl.setText(name); // Update header label
+                cardLayout.show(pageContainer, name.trim()); // ✅ Trim spaces
+                dashboardLbl.setText(name.trim());
             }
 
         });
