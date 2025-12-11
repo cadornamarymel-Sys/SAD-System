@@ -71,20 +71,36 @@ public class PharmaSysLogin extends JFrame {
         header.setOpaque(false);
         header.setLayout(new BoxLayout(header, BoxLayout.Y_AXIS));
 
+        // ---- LOGO IMAGE ----
+        ImageIcon rawLogo = new ImageIcon(getClass().getResource("/SAD/img/Login (1).jpg"));
+        Image scaledLogoImg = rawLogo.getImage().getScaledInstance(90, 70, Image.SCALE_SMOOTH);
+        ImageIcon scaledLogo = new ImageIcon(scaledLogoImg);
+
+        JLabel logoImage = new JLabel(scaledLogo);
+        logoImage.setAlignmentX(Component.CENTER_ALIGNMENT);
+
+        // ---- TITLE ----
         JLabel logo = new JLabel("PharmaSys");
         logo.setForeground(Color.WHITE);
-        logo.setFont(new Font("Segoe UI", Font.BOLD, 24));
+        logo.setFont(new Font("Segoe UI", Font.BOLD, 26));
         logo.setAlignmentX(Component.CENTER_ALIGNMENT);
 
+        // ---- SUBTITLE ----
         JLabel subtitleLabel = new JLabel("Pharmacy Management System");
         subtitleLabel.setForeground(Color.BLACK);
         subtitleLabel.setFont(new Font("Segoe UI", Font.PLAIN, 14));
         subtitleLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
 
-        header.add(Box.createVerticalStrut(30));
+        // Add components to header
+        header.add(Box.createVerticalStrut(30));  // top spacing
+        header.add(logoImage);
+        header.add(Box.createVerticalStrut(-5));   // between image & title
         header.add(logo);
+        header.add(Box.createVerticalStrut(0));   // between title & subtitle
         header.add(subtitleLabel);
-        header.add(Box.createVerticalStrut(15));
+        header.add(Box.createVerticalStrut(0));  // spacing between header and login card
+
+
         background.add(header, BorderLayout.NORTH);
 
         JPanel centerHolder = new JPanel(new GridBagLayout());
