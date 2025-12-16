@@ -1,1138 +1,559 @@
 import javax.swing.*;
-import javax.swing.border.EmptyBorder;
+import javax.swing.border.*;
 import java.awt.*;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
-import java.io.File;
-import java.util.HashMap;
-import java.util.Map;
-
-import javax.imageio.ImageIO;
-import java.awt.image.BufferedImage;
+import java.awt.event.*;
 
 public class PharmaSysSettings extends JPanel {
 
-    // ---- Styling constants to match your Dashboard ----
-    private final Color blue = new Color(79, 107, 201);
-    private final Color bgGray = new Color(208, 217, 232);
-    private final Color cardGray = new Color(236, 243, 249);
-    private final Font titleFont = new Font("Segoe UI", Font.BOLD, 15);
-    private final Font normalFont = new Font("Segoe UI", Font.PLAIN, 12);
-    private final Font boldFont = new Font("Segoe UI", Font.BOLD, 12);
+    // --- Design Constants (Matching Reports) ---
+    private final Color pageBg = new Color(208, 217, 232);
+    private final Color blue = new Color(25, 52, 214);
+    private final Color hoverBlue = new Color(45, 75, 240); // Lighter blue for button hover
+    private final Color grayText = new Color(100, 110, 120);
+    private final Color inputBg = new Color(235, 238, 243); // Light gray background for fields
 
-    // Saved settings
-    private String savedLanguage;
-    private String savedTimezone;
-    private String savedDateFormat;
-    private String savedCurrency;
+    // Tab Colors
+    private final Color tabContainerColor = new Color(238, 242, 248);
+    private final Color tabNormal = new Color(226, 232, 240);
+    private final Color tabActive = Color.WHITE;
+    private final Color tabHover = new Color(232, 238, 248);
 
-    // Appearance dropdowns
-    private JComboBox<String> languageCombo;
-    private JComboBox<String> timezoneCombo;
-    private JComboBox<String> dateFormatCombo;
-    private JComboBox<String> currencyCombo;
+    private CardLayout innerCards;
+    private JPanel innerContainer;
+    private JPanel currentTab = null;
 
-    // Tab components
-    private final JPanel tabBar = new JPanel();
-    private final CardLayout innerCardLayout = new CardLayout();
-    private final JPanel innerCardPanel = new JPanel(innerCardLayout);
-    private JPanel avatarPreview;
-    private java.util.List<JTextField> allFields = new java.util.ArrayList<>();
-    private java.util.List<SimpleToggle> allToggles = new java.util.ArrayList<>();
+    public PharmaSysSettings() {
+        setLayout(new BorderLayout());
+        setOpaque(false);
 
-    // -------------------- NEW: Language / Tab labels --------------------
-    private JLabel profileHeading;
-    private JLabel pharmacyHeading;
-    private JLabel notificationsHeading;
-    private JLabel securityHeading;
-    private JLabel appearanceHeading;
+        // Wrapper to add padding (matches Reports spacing)
+        JPanel wrapper = new JPanel(new BorderLayout());
+        wrapper.setOpaque(false);
+        wrapper.setBorder(new EmptyBorder(2, 5, 5, 5));
 
-    private JLabel profileTabLabel;
-    private JLabel pharmacyTabLabel;
-    private JLabel notificationsTabLabel;
-    private JLabel securityTabLabel;
-    private JLabel appearanceTabLabel;
+        // 1. Header (Title + Subtitle + Save Button)
+        wrapper.add(buildHeader(), BorderLayout.NORTH);
 
-    private final Map<String, Map<String, String>> translations = new HashMap<>();
+        // 2. Main Content (Tabs + Cards)
+        JPanel center = new JPanel(new BorderLayout());
+        center.setOpaque(false);
 
-    // ------------------- NEW: explicit text field variables -------------------
-    // PROFILE
-    private JTextField firstNameField;
-    private JTextField lastNameField;
-    private JTextField emailField;            // profile email (label: "Email Address")
-    private JTextField phoneField;            // profile phone (label: "Phone Number" first occurrence)
-    private JTextField roleField;
+        // Tabs container with spacing
+        JPanel tabsWithSpace = new JPanel(new BorderLayout());
+        tabsWithSpace.setOpaque(false);
+        tabsWithSpace.setBorder(new EmptyBorder(10, 0, 10, 0));
+        tabsWithSpace.add(buildSegmentedTabs(), BorderLayout.CENTER);
 
-    // PHARMACY
-    private JTextField pharmacyNameField;
-    private JTextField licenseNumberField;
-    private JTextField addressField;
-    private JTextField cityField;
-    private JTextField zipField;
-    private JTextField pharmacyPhoneField;    // pharmacy phone (label: "Phone Number" second occurrence)
-    private JTextField pharmacyEmailField;    // pharmacy email (label: "Email")
+        center.add(tabsWithSpace, BorderLayout.NORTH);
 
-    // SECURITY
-    private JTextField currentPassField;
-    private JTextField newPassField;
-    private JTextField confirmPassField;
+        // Card Container (Where the settings forms go)
+        innerCards = new CardLayout();
+        innerContainer = new JPanel(innerCards);
+        innerContainer.setOpaque(false);
 
-    private void initTranslations() {
-        // English
-        Map<String, String> en = new HashMap<>();
-        en.put("Dashboard", "Dashboard");
-        en.put("Inventory", "Inventory");
-        en.put("Sales", "Sales");
-        en.put("Reports", "Reports");
-        en.put("Settings", "Settings");
-        en.put("Profile Information", "Profile Information");
-        en.put("Pharmacy Details", "Pharmacy Details");
-        // add all labels you have...
-        translations.put("English", en);
+        // Add the FIVE specific Settings pages
+        innerContainer.add(buildProfileSettings(), "Profile");
+        innerContainer.add(buildPharmacySettings(), "Pharmacy");
+        innerContainer.add(buildNotificationSettings(), "Notifications");
+        innerContainer.add(buildSecuritySettings(), "Security");
+        innerContainer.add(buildAppearanceSettings(), "Appearance");
 
-        // Filipino
-        Map<String, String> fil = new HashMap<>();
-        fil.put("Dashboard", "Dashboard"); // translate appropriately
-        fil.put("Inventory", "Imbentaryo");
-        fil.put("Sales", "Benta");
-        fil.put("Reports", "Ulat");
-        fil.put("Settings", "Mga Setting");
-        fil.put("Profile Information", "Impormasyon ng Profile");
-        fil.put("Pharmacy Details", "Detalye ng Parmasya");
-        translations.put("Filipino", fil);
+        innerCards.show(innerContainer, "Profile"); // Default view
 
-        // Spanish
-        Map<String, String> sp = new HashMap<>();
-        sp.put("Dashboard", "Tablero");
-        sp.put("Inventory", "Inventario");
-        sp.put("Sales", "Ventas");
-        sp.put("Reports", "Informes");
-        sp.put("Settings", "Configuración");
-        sp.put("Profile Information", "Información de Perfil");
-        sp.put("Pharmacy Details", "Detalles de la Farmacia");
-        translations.put("Spanish", sp);
-    }
+        center.add(innerContainer, BorderLayout.CENTER);
+        wrapper.add(center, BorderLayout.CENTER);
 
-    private void applyLanguage(String language) {
-        if (!translations.containsKey(language)) return;
-        Map<String, String> t = translations.get(language);
+        add(wrapper, BorderLayout.CENTER);
+    }
 
-        // Example for Settings panel labels
-        // You need references to the labels (store them in fields)
-        profileHeading.setText(t.getOrDefault("Profile Information", "Profile Information"));
-        pharmacyHeading.setText(t.getOrDefault("Pharmacy Details", "Pharmacy Details"));
-        notificationsHeading.setText(t.getOrDefault("Notification Settings", "Notification Settings"));
-        securityHeading.setText(t.getOrDefault("Security Settings", "Security Settings"));
-        appearanceHeading.setText(t.getOrDefault("Appearance Settings", "Appearance Settings"));
+    // ---------------------------------------------------------
+    //  UI BUILDERS
+    // ---------------------------------------------------------
 
-        // Similarly for tab labels
-        profileTabLabel.setText(t.getOrDefault("Profile", "Profile"));
-        pharmacyTabLabel.setText(t.getOrDefault("Pharmacy", "Pharmacy"));
-        notificationsTabLabel.setText(t.getOrDefault("Notifications", "Notifications"));
-        securityTabLabel.setText(t.getOrDefault("Security", "Security"));
-        appearanceTabLabel.setText(t.getOrDefault("Appearance", "Appearance"));
+    private JPanel buildHeader() {
+        JPanel header = new JPanel(new BorderLayout());
+        header.setOpaque(false);
 
-        // Repeat for other tables: Dashboard, Inventory, Sales, Reports
-    }
+        JPanel left = new JPanel();
+        left.setLayout(new BoxLayout(left, BoxLayout.Y_AXIS));
+        left.setOpaque(false);
+        left.setBorder(new EmptyBorder(0, 0, 10, 0)); // Padding below header text
 
-    public PharmaSysSettings() {
-        initTranslations();
-        setOpaque(false);
-        setLayout(new BorderLayout());
-        setBackground(bgGray);
-        setBorder(new EmptyBorder(0, 0, 0, 0));
+        JLabel t = new JLabel("Settings");
+        t.setFont(new Font("Segoe UI", Font.BOLD, 20));
+        t.setAlignmentX(Component.LEFT_ALIGNMENT);
+        left.add(t);
 
-        // Header (Title + subtitle)
-        JPanel header = new JPanel();
-        header.setOpaque(false);
-        header.setLayout(new BoxLayout(header, BoxLayout.Y_AXIS));
-        header.setBorder(new EmptyBorder(0, 0, 0, 0));
+        JLabel s = new JLabel("Manage user, pharmacy details, and application preferences");
+        s.setFont(new Font("Segoe UI", Font.BOLD, 12));
+        s.setForeground(Color.DARK_GRAY);
+        s.setAlignmentX(Component.LEFT_ALIGNMENT);
+        left.add(s);
 
-        JLabel title = new JLabel("Settings");
-        title.setFont(new Font("Segoe UI", Font.BOLD, 20));
-        JLabel subtitle = new JLabel("Manage your pharmacy system preferences and configurations");
-        subtitle.setFont(normalFont);
-
-        header.add(title);
-        header.add(subtitle);
-
-        // Tabs
-        tabBar.setOpaque(false);
-        tabBar.setLayout(new FlowLayout(FlowLayout.LEFT, 12, 6));
-        tabBar.setBorder(new EmptyBorder(10, 0, 10, 0));
-
-        // Create tab buttons
-        TabButton profileTab = new TabButton("Profile", true);
-        TabButton pharmacyTab = new TabButton("Pharmacy", false);
-        TabButton notificationsTab = new TabButton("Notifications", false);
-        TabButton securityTab = new TabButton("Security", false);
-        TabButton appearanceTab = new TabButton("Appearance", false);
-
-        // keep references for translation usage (optional)
-        profileTabLabel = new JLabel("Profile");
-        pharmacyTabLabel = new JLabel("Pharmacy");
-        notificationsTabLabel = new JLabel("Notifications");
-        securityTabLabel = new JLabel("Security");
-        appearanceTabLabel = new JLabel("Appearance");
-
-        // Tab click handlers
-        profileTab.addMouseListener(new MouseAdapter() {
-            @Override public void mouseClicked(MouseEvent e) { switchTab("Profile", profileTab); }
-        });
-        pharmacyTab.addMouseListener(new MouseAdapter() {
-            @Override public void mouseClicked(MouseEvent e) { switchTab("Pharmacy", pharmacyTab); }
-        });
-        notificationsTab.addMouseListener(new MouseAdapter() {
-            @Override public void mouseClicked(MouseEvent e) { switchTab("Notifications", notificationsTab); }
-        });
-        securityTab.addMouseListener(new MouseAdapter() {
-            @Override public void mouseClicked(MouseEvent e) { switchTab("Security", securityTab); }
-        });
-        appearanceTab.addMouseListener(new MouseAdapter() {
-            @Override public void mouseClicked(MouseEvent e) { switchTab("Appearance", appearanceTab); }
-        });
-
-        tabBar.add(profileTab);
-        tabBar.add(pharmacyTab);
-        tabBar.add(notificationsTab);
-        tabBar.add(securityTab);
-        tabBar.add(appearanceTab);
-
-        // Build inner cards for each tab
-        innerCardPanel.setOpaque(false);
-        innerCardPanel.add(buildProfilePanel(), "Profile");
-        innerCardPanel.add(buildPharmacyPanel(), "Pharmacy");
-        innerCardPanel.add(buildNotificationsPanel(), "Notifications");
-        innerCardPanel.add(buildSecurityPanel(), "Security");
-        innerCardPanel.add(buildAppearancePanel(), "Appearance");
-
-        // Default to Profile
-        innerCardLayout.show(innerCardPanel, "Profile");
-
-        // Save/Cancel bar at bottom (shared)
-        JPanel bottomBar = new JPanel(new FlowLayout(FlowLayout.RIGHT, 20, 12));
-        bottomBar.setOpaque(false);
-        bottomBar.setAlignmentX(RIGHT_ALIGNMENT);
-        bottomBar.setBorder(new EmptyBorder(0, 0, 0, -20));
-        bottomBar.setPreferredSize(new Dimension(65, 50));
-
-        RoundedButton cancelBtn = new RoundedButton("Cancel", false);
-        cancelBtn.addActionListener(e -> {
-            for (JTextField tf : allFields) {
-                // clear field; focusLost will restore placeholder text
-                tf.setText("");
-            }
-
-            for (SimpleToggle t : allToggles) {
-                try {
-                    java.lang.reflect.Field f = t.getClass().getDeclaredField("on");
-                    f.setAccessible(true);
-                    f.setBoolean(t, false);
-                    t.repaint();
-                } catch (Exception ignored) {}
-            }
-
-            JOptionPane.showMessageDialog(this, "All changes were discarded.");
-        });
-        RoundedButton saveBtn = new RoundedButton("Save Changes", true);
-        saveBtn.addActionListener(e -> {
-
-            // 👉 STORE ALL PROFILE FIELDS
-String first = firstNameField.getText().trim();
-String last = lastNameField.getText().trim();
-String email = emailField.getText().trim();
-String phone = phoneField.getText().trim();
-String role = roleField.getText().trim();
-
-// 👉 STORE ALL PHARMACY FIELDS
-String pharmName = pharmacyNameField.getText().trim();
-String lic = licenseNumberField.getText().trim();
-String addr = addressField.getText().trim();
-String city = cityField.getText().trim();
-String zip = zipField.getText().trim();
-String pharmPhone = pharmacyPhoneField.getText().trim();
-String pharmEmail = pharmacyEmailField.getText().trim();
-
-// 👉 STORE SECURITY FIELDS
-String curPass = currentPassField.getText().trim();
-String newPass = newPassField.getText().trim();
-String confPass = confirmPassField.getText().trim();
-
-
-            // Validate all text fields (treat placeholder as empty)
-            for (JTextField tf : allFields) {
-                String text = tf.getText() == null ? "" : tf.getText().trim();
-                Object ph = tf.getClientProperty("placeholder");
-                String placeholder = ph == null ? "" : ph.toString();
-                if (text.isEmpty() || text.equals(placeholder)) {
-                    JOptionPane.showMessageDialog(this,
-                            "Please complete all fields before saving.",
-                            "Validation Error",
-                            JOptionPane.ERROR_MESSAGE);
-                    return;
-                }
-            }
-
-            // Validate dropdowns
-            if (languageCombo.getSelectedItem() == null ||
-                timezoneCombo.getSelectedItem() == null ||
-                dateFormatCombo.getSelectedItem() == null ||
-                currencyCombo.getSelectedItem() == null) {
-
-                JOptionPane.showMessageDialog(
-                        this,
-                        "Please complete all appearance settings.",
-                        "Validation Error",
-                        JOptionPane.ERROR_MESSAGE
-                );
-                return;
-            }
-            // ✅ Save the appearance settings
-            savedLanguage = languageCombo.getSelectedItem().toString();
-            savedTimezone = timezoneCombo.getSelectedItem().toString();
-            savedDateFormat = dateFormatCombo.getSelectedItem().toString();
-            savedCurrency = currencyCombo.getSelectedItem().toString();
-
-            // Apply language immediately
-            applyLanguage(savedLanguage);
-
-            JOptionPane.showMessageDialog(this,
-                    "Settings saved successfully!\n" +
-                    "Language: " + savedLanguage + "\n" +
-                    "Timezone: " + savedTimezone + "\n" +
-                    "Date Format: " + savedDateFormat + "\n" +
-                    "Currency: " + savedCurrency,
-                    "Saved",
+        header.add(left, BorderLayout.WEST);
+        
+        // Right side "Save" button (Global save)
+        JPanel right = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+        right.setOpaque(false);
+        // Align button vertically with the text block
+        right.setBorder(new EmptyBorder(10, 0, 0, 0)); 
+        JButton saveBtn = new JButton("Save All Changes");
+        stylePrimaryButton(saveBtn);
+        
+        // --- START CHANGE: Add ActionListener to Save Button ---
+        saveBtn.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                // Display the success message as requested
+                JOptionPane.showMessageDialog(PharmaSysSettings.this, 
+                    "Settings updated successfully!", 
+                    "Save Complete", 
                     JOptionPane.INFORMATION_MESSAGE);
-        });
-        saveBtn.setBackground(new Color(37, 99, 235));
-        saveBtn.setForeground(Color.WHITE);
-        saveBtn.setFocusPainted(false);
-        saveBtn.setBorderPainted(false);
-        saveBtn.setOpaque(true);
-
-        bottomBar.add(cancelBtn);
-        bottomBar.add(saveBtn);
-
-        // Compose everything
-        JPanel top = new JPanel(new BorderLayout());
-        top.setOpaque(false);
-        top.add(header, BorderLayout.NORTH);
-        top.add(tabBar, BorderLayout.CENTER);
-
-        // central card area with rounded white background like screenshot
-        JPanel centerWrap = new RoundedCardPanel();
-        centerWrap.setLayout(new BorderLayout());
-        centerWrap.setOpaque(false);
-        centerWrap.setBorder(new EmptyBorder(18, 18, 18, 18));
-
-        centerWrap.add(innerCardPanel, BorderLayout.CENTER);
-
-        setLayout(new BorderLayout());
-        add(top, BorderLayout.NORTH);
-        add(centerWrap, BorderLayout.CENTER);
-        add(bottomBar, BorderLayout.SOUTH);
-    }
-
-    private void switchTab(String name, TabButton clicked) {
-        // Update visual selection
-        for (Component c : tabBar.getComponents()) {
-            if (c instanceof TabButton) {
-                ((TabButton) c).setSelected(c == clicked);
-            }
-        }
-        // Switch shown card
-        innerCardLayout.show(innerCardPanel, name);
-    }
-
-    // ------------------- BUILD TABS -------------------
-
-    private JPanel buildProfilePanel() {
-        JPanel panel = new JPanel();
-        panel.setOpaque(false);
-        panel.setLayout(new BorderLayout());
-
-        JPanel form = new RoundedCardPanel();
-        form.setLayout(new BoxLayout(form, BoxLayout.Y_AXIS));
-        form.setBorder(new EmptyBorder(18, 18, 18, 18));
-        form.setOpaque(false);
-
-        // Profile header
-        profileHeading = new JLabel("Profile Information");
-        profileHeading.setFont(boldFont);
-        profileHeading.setAlignmentX(Component.CENTER_ALIGNMENT);
-        profileHeading.setFont(new Font("Segoe UI", Font.BOLD, 20));
-        form.add(profileHeading);
-        form.add(Box.createVerticalStrut(12));
-
-        // Top row: avatar + change photo
-        JPanel topRow = new JPanel(new FlowLayout(FlowLayout.LEFT, 20, 5));
-        topRow.setOpaque(false);
-
-        // Avatar circle (simple)
-        avatarPreview = new JPanel() {
-            BufferedImage image;
-
-            @Override
-            protected void paintComponent(Graphics g) {
-                super.paintComponent(g);
-                int size = Math.min(getWidth(), getHeight());
-                Graphics2D g2 = (Graphics2D) g.create();
-                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-
-                if (image != null) {
-                    g2.setClip(new java.awt.geom.Ellipse2D.Float(0, 0, size, size));
-                    g2.drawImage(image, 0, 0, size, size, null);
-                } else {
-                    g2.setColor(blue);
-                    g2.fillOval(0, 0, size, size);
-
-                    g2.setColor(Color.WHITE);
-                    g2.setFont(new Font("Segoe UI", Font.BOLD, 28));
-                    FontMetrics fm = g2.getFontMetrics();
-                    String letter = "A";
-                    int w = fm.stringWidth(letter);
-                    int h = fm.getAscent();
-
-                    g2.drawString(letter, (size - w) / 2, (size + h) / 2 - 4);
-                }
-                g2.dispose();
-            }
-
-            public void setImage(File file) {
-                try {
-                    image = ImageIO.read(file);
-                    repaint();
-                } catch (Exception ignored) {}
-            }
-        };
-        avatarPreview.setPreferredSize(new Dimension(96, 96));
-
-        // avatarRight panel (was accidentally removed earlier) ------------------------------------------------
-        JPanel avatarRight = new JPanel();
-        avatarRight.setLayout(new BoxLayout(avatarRight, BoxLayout.Y_AXIS));
-        avatarRight.setOpaque(false);
-
-        // Change Photo button (re-add declaration and listener)
-        RoundedButton changePhoto = new RoundedButton("Change Photo", false);
-        changePhoto.setMaximumSize(new Dimension(140, 35));
-        changePhoto.addActionListener(ev -> {
-            JFileChooser chooser = new JFileChooser();
-            int result = chooser.showOpenDialog(this);
-            if (result == JFileChooser.APPROVE_OPTION) {
-                File f = chooser.getSelectedFile();
-                try {
-                    // call the anonymous setImage(File) method on avatarPreview via reflection
-                    avatarPreview.getClass().getMethod("setImage", File.class).invoke(avatarPreview, f);
-                } catch (Exception ignored) {}
+                // System.out.println("Save button clicked - Success dialog shown.");
             }
         });
-
-        JLabel help = new JLabel("JPG, GIF or PNG. Max size 2MB");
-        help.setFont(new Font("Segoe UI", Font.BOLD, 12));
-        help.setForeground(Color.DARK_GRAY);
-
-        avatarRight.add(changePhoto);
-        avatarRight.add(Box.createVerticalStrut(6));
-        avatarRight.add(help);
-
-        // add avatarPreview and right column to the topRow
-        topRow.add(avatarPreview);
-        topRow.add(avatarRight);
-
-
-        form.add(topRow);
-        form.add(Box.createVerticalStrut(18));
-
-        // Grid like inputs: two columns
-        JPanel grid = new JPanel(new GridBagLayout());
-        grid.setOpaque(false);
-        GridBagConstraints gbc = new GridBagConstraints();
-        gbc.insets = new Insets(8, 8, 8, 8);
-        gbc.fill = GridBagConstraints.HORIZONTAL;
-        gbc.weightx = 1.0;
-
-        // Row 1: First name | Last name
-        gbc.gridx = 0; gbc.gridy = 0;
-        grid.add(labeledField("First Name", "Enter your first name"), gbc);
-        gbc.gridx = 1;
-        grid.add(labeledField("Last Name", "Enter your last name"), gbc);
-
-        // Row 2: Email full width
-        gbc.gridx = 0; gbc.gridy = 1; gbc.gridwidth = 2;
-        grid.add(labeledField("Email Address", "Enter your email address"), gbc);
-        gbc.gridwidth = 1;
-
-        // Row 3: Phone | Role
-        gbc.gridx = 0; gbc.gridy = 2;
-        grid.add(labeledField("Phone Number", "Enter your phone number"), gbc);
-        gbc.gridx = 1;
-        grid.add(labeledField("Role", "Enter your role"), gbc);
-
-        form.add(grid);
-
-        panel.add(form, BorderLayout.CENTER);
-        return panel;
-    }
-
-    private JPanel buildPharmacyPanel() {
-        JPanel panel = new JPanel();
-        panel.setOpaque(false);
-        panel.setLayout(new BorderLayout());
-
-        JPanel card = new RoundedCardPanel();
-        card.setLayout(new BoxLayout(card, BoxLayout.Y_AXIS));
-        card.setBorder(new EmptyBorder(18, 18, 18, 18));
-        card.setOpaque(false);
-
-        JLabel heading = new JLabel("Pharmacy Details");
-        heading.setFont(new Font("Segoe UI", Font.BOLD, 20));
-        heading.setAlignmentX(Component.CENTER_ALIGNMENT);
-        card.add(heading);
-        card.add(Box.createVerticalStrut(-5));
-
-        // Form using GridBag for flexible fields
-        JPanel grid = new JPanel(new GridBagLayout());
-        grid.setOpaque(false);
-        GridBagConstraints gbc = new GridBagConstraints();
-        gbc.insets = new Insets(8, 8, 8, 8);
-        gbc.fill = GridBagConstraints.HORIZONTAL;
-        gbc.weightx = 1.0;
-
-        // Pharmacy name full width
-        gbc.gridx = 0; gbc.gridy = 0; gbc.gridwidth = 2;
-        grid.add(labeledField("Pharmacy Name", "Enter your pharmacy name"), gbc);
-        gbc.gridwidth = 1;
-
-        // License number full width
-        gbc.gridx = 0; gbc.gridy = 1; gbc.gridwidth = 2;
-        grid.add(labeledField("License Number", "Enter your license number"), gbc);
-        gbc.gridwidth = 1;
-
-        // Address full width
-        gbc.gridx = 0; gbc.gridy = 2; gbc.gridwidth = 2;
-        grid.add(labeledField("Address", "Enter your address"), gbc);
-        gbc.gridwidth = 1;
-
-        // City | Zip
-        gbc.gridx = 0; gbc.gridy = 3;
-        grid.add(labeledField("City", "Enter your city"), gbc);
-        gbc.gridx = 1;
-        grid.add(labeledField("Zip Code", "Enter your zip code"), gbc);
-
-        // Phone | Email
-        gbc.gridx = 0; gbc.gridy = 4;
-        grid.add(labeledField("Phone Number", "Enter your phone number"), gbc);
-        gbc.gridx = 1;
-        grid.add(labeledField("Email", "Enter your email"), gbc);
-
-        card.add(grid);
-
-        // Business hours small footer right-aligned (simulates screenshot text)
-        JPanel hours = new JPanel(new BorderLayout());
-        hours.setOpaque(false);
-        JLabel left = new JLabel("Business Hours");
-        left.setFont(boldFont);
-        JPanel right = new JPanel();
-        right.setOpaque(false);
-        right.setLayout(new BoxLayout(right, BoxLayout.Y_AXIS));
-        right.add(createSmallLabel("Monday - Friday    8:00 AM - 8:00 PM"));
-        right.add(createSmallLabel("Saturday            9:00 AM - 6:00 PM"));
-        right.add(createSmallLabel("Sunday              10:00 AM - 4:00 PM"));
-
-        hours.add(left, BorderLayout.WEST);
-        hours.add(right, BorderLayout.EAST);
-
-        card.add(Box.createVerticalStrut(18));
-        card.add(hours);
-        card.add(Box.createVerticalGlue());
-
-        panel.add(card, BorderLayout.CENTER);
-        return panel;
-    }
-
-    private JPanel buildNotificationsPanel() {
-        JPanel panel = new JPanel();
-        panel.setOpaque(false);
-        panel.setLayout(new BorderLayout());
-
-        JPanel card = new RoundedCardPanel();
-        card.setLayout(new BoxLayout(card, BoxLayout.Y_AXIS));
-        card.setBorder(new EmptyBorder(18, 18, 18, 18));
-        card.setOpaque(false);
-
-        JLabel heading = new JLabel("Notification Settings");
-        heading.setFont(boldFont);
-        heading.setFont(new Font("Segoe UI", Font.BOLD, 20));
-        heading.setAlignmentX(Component.CENTER_ALIGNMENT);
-        card.add(heading);
-        card.add(Box.createVerticalStrut(12));
-
-        // Each row with description and a toggle aligned to right
-        card.add(notificationRow("Low Stock Alerts", "Get notified when medicines are running low", true));
-        card.add(notificationRow("Expiry Warnings", "Alert when medicines are close to expiration", true));
-        card.add(notificationRow("Daily Sales Report", "Receive daily sales summary via email", true));
-        card.add(notificationRow("System Updates", "Get notified about system updates and maintenance", false));
-        card.add(notificationRow("Email Notifications", "Receive notifications via email", true));
-        card.add(notificationRow("SMS Notifications", "Receive critical alerts via SMS", false));
-
-        panel.add(card, BorderLayout.CENTER);
-        return panel;
-    }
-
-    private JPanel buildSecurityPanel() {
-        JPanel panel = new JPanel();
-        panel.setOpaque(false);
-        panel.setLayout(new BorderLayout());
-
-        JPanel card = new RoundedCardPanel();
-        card.setLayout(new BoxLayout(card, BoxLayout.Y_AXIS));
-        card.setBorder(new EmptyBorder(0, 18, 18, 18));
-        card.setOpaque(false);
-
-        JLabel heading = new JLabel("Security Settings");
-        heading.setFont(new Font("Segoe UI", Font.BOLD, 20));
-        heading.setAlignmentX(Component.CENTER_ALIGNMENT);
-        card.add(heading);
-        card.add(Box.createVerticalStrut(5));
-
-        // ---------------------------
-        // PASSWORD FIELDS (2-column grid)
-        // ---------------------------
-        JPanel grid = new JPanel(new GridBagLayout());
-        grid.setOpaque(false);
-        GridBagConstraints gbc = new GridBagConstraints();
-        gbc.insets = new Insets(10, 10, 10, 10);
-        gbc.fill = GridBagConstraints.HORIZONTAL;
-        gbc.weightx = 1.0;
-
-        // Current Password full width
-        gbc.gridx = 0; gbc.gridy = 0; gbc.gridwidth = 2;
-        grid.add(labeledField("Current Password", "Enter current password"), gbc);
-
-        // New Password | Confirm Password
-        gbc.gridwidth = 1;
-        gbc.gridx = 0; gbc.gridy = 1;
-        grid.add(labeledField("New Password", "Enter new password"), gbc);
-
-        gbc.gridx = 1; gbc.gridy = 1;
-        grid.add(labeledField("Confirm Password", "Re-enter password"), gbc);
-
-        card.add(grid);
-        card.add(Box.createVerticalStrut(18));
-
-        // ---------------------------
-        // SECURITY SWITCHES
-        // ---------------------------
-        card.add(notificationRow(
-                "Two-Factor Authentication",
-                "Add an extra layer of security to your account",
-                false
-        ));
-
-        card.add(notificationRow(
-                "Login Alerts",
-                "Get notified when someone logs into your account",
-                true
-        ));
-
-        card.add(Box.createVerticalStrut(20));
-
-        // ---------------------------
-        // ACTIVE SESSIONS BLOCK (Styled card)
-        // ---------------------------
-        JLabel sessions = new JLabel("Active Sessions");
-        sessions.setFont(new Font("Segoe UI", Font.BOLD, 14));
-        sessions.setAlignmentX(Component.LEFT_ALIGNMENT);
-
-        // Wrap inside a left-aligned panel
-        JPanel sessionTitleWrap = new JPanel(new FlowLayout(FlowLayout.LEFT, 5, 0));
-        sessionTitleWrap.setOpaque(false);
-        sessionTitleWrap.add(sessions);
-
-        // small positive spacing ABOVE the session box
-        card.add(Box.createVerticalStrut(-10));  // adjust to taste
-        card.add(sessionTitleWrap);
-        card.add(Box.createVerticalStrut(6));  // small space before the container
-
-        JPanel sessionBox = new RoundedPanel();
-        sessionBox.setLayout(new BorderLayout());
-        sessionBox.setBorder(new EmptyBorder(0, 10, 10, 10));
-        sessionBox.setOpaque(false);
-
-        JLabel sessionLabel = new JLabel(
-                "<html><b>Current Device</b><br/>" +
-                "<span style='font-size:11px;color:gray'>" +
-                "Chrome on Windows • Manila, Philippines<br/>" +
-                "Last active: Now" +
-                "</span></html>"
-        );
-
-        sessionBox.add(sessionLabel, BorderLayout.WEST);
-
-        JLabel status = new JLabel("Active");
-        status.setFont(new Font("Segoe UI", Font.BOLD, 13));
-        status.setForeground(new Color(18, 150, 80));
-        sessionBox.add(status, BorderLayout.EAST);
-
-        card.add(sessionBox);
-
-        panel.add(card, BorderLayout.CENTER);
-        return panel;
-    }
-
-    private JPanel buildAppearancePanel() {
-        JPanel panel = new JPanel();
-        panel.setOpaque(false);
-        panel.setLayout(new BorderLayout());
-
-        JPanel card = new RoundedCardPanel();
-        card.setLayout(new BoxLayout(card, BoxLayout.Y_AXIS));
-        card.setAlignmentX(Component.LEFT_ALIGNMENT);
-        card.setBorder(new EmptyBorder(18, 18, 18, 18));
-        card.setOpaque(false);
-
-        JLabel heading = new JLabel("Appearance Settings");
-        heading.setFont(boldFont);
-        heading.setFont(new Font("Segoe UI", Font.BOLD, 20));
-        heading.setAlignmentX(Component.CENTER_ALIGNMENT);
-        card.add(heading);
-        card.add(Box.createVerticalStrut(12));
-
-        languageCombo = new JComboBox<>(new String[]{
-                "English (US)",
-                "Filipino",
-                "Spanish"
-        });
-
-        timezoneCombo = new JComboBox<>(new String[]{
-                "Asia/Manila",
-                "UTC",
-                "America/New_York",
-                "Europe/London"
-        });
-
-        dateFormatCombo = new JComboBox<>(new String[]{
-                "MM/DD/YYYY",
-                "DD/MM/YYYY",
-                "YYYY-MM-DD"
-        });
-
-        currencyCombo = new JComboBox<>(new String[]{
-                "Philippine Peso (₱)",
-                "US Dollar ($)",
-                "Euro (€)"
-        });
-
-        card.add(keyValueDropdown("Language", languageCombo));
-        card.add(keyValueDropdown("Timezone", timezoneCombo));
-        card.add(keyValueDropdown("Date Format", dateFormatCombo));
-        card.add(keyValueDropdown("Currency", currencyCombo));
-
-        // Toggles
-        card.add(Box.createVerticalStrut(8));
-        card.add(notificationRow("Compact Mode", "Reduce spacing for more content density", true));
-        card.add(notificationRow("Show Animations", "Enable smooth transitions and animations", false));
-
-        panel.add(card, BorderLayout.CENTER);
-        return panel;
-    }
-
-    // ------------------- Utility UI Builders -------------------
-
-    /**
-     * A small helper that creates a two-line label used in pharmacy hours
-     */
-    private JLabel createSmallLabel(String text) {
-        JLabel l = new JLabel(text);
-        l.setFont(new Font("Segoe UI", Font.PLAIN, 11));
-        l.setForeground(Color.DARK_GRAY);
-        return l;
-    }
-
-    /**
-     * Create a panel with a label above a rounded text field (simple placeholder)
-     */
-    private JPanel labeledField(String label, String placeholder) {
-        JPanel p = new JPanel();
-        p.setOpaque(false);
-        p.setLayout(new BoxLayout(p, BoxLayout.Y_AXIS));
-        p.setAlignmentX(Component.LEFT_ALIGNMENT);
-
-        JLabel l = new JLabel(label);
-        l.setFont(boldFont);
-        l.setAlignmentX(Component.LEFT_ALIGNMENT);
-
-        JTextField tf = new JTextField(placeholder);
-        // store placeholder so validation can treat it as empty
-        tf.putClientProperty("placeholder", placeholder);
-        allFields.add(tf);
-        tf.setFont(normalFont);
-        tf.setBorder(BorderFactory.createEmptyBorder(8, 10, 8, 10));
-        tf.setMaximumSize(new Dimension(Integer.MAX_VALUE, 32));
-        tf.setForeground(Color.DARK_GRAY);
-
-        // Attach to correct variable based on label and occurrence
-        // The logic relies on the tab construction order (Profile tab built before Pharmacy tab)
-        if ("First Name".equals(label)) {
-            firstNameField = tf;
-        } else if ("Last Name".equals(label)) {
-            lastNameField = tf;
-        } else if ("Email Address".equals(label)) {
-            emailField = tf;
-        } else if ("Phone Number".equals(label)) {
-            // first occurrence -> profile phone, second occurrence -> pharmacy phone
-            if (phoneField == null) phoneField = tf;
-            else pharmacyPhoneField = tf;
-        } else if ("Role".equals(label)) {
-            roleField = tf;
-        } else if ("Pharmacy Name".equals(label)) {
-            pharmacyNameField = tf;
-        } else if ("License Number".equals(label)) {
-            licenseNumberField = tf;
-        } else if ("Address".equals(label)) {
-            addressField = tf;
-        } else if ("City".equals(label)) {
-            cityField = tf;
-        } else if ("Zip Code".equals(label)) {
-            zipField = tf;
-        } else if ("Email".equals(label)) {
-            // this label refers to pharmacy email in your Pharmacy tab
-            pharmacyEmailField = tf;
-        } else if ("Current Password".equals(label)) {
-            currentPassField = tf;
-        } else if ("New Password".equals(label)) {
-            newPassField = tf;
-        } else if ("Confirm Password".equals(label)) {
-            confirmPassField = tf;
-        }
-
-        // Placeholder behavior
-        tf.addFocusListener(new java.awt.event.FocusAdapter() {
-            @Override
-            public void focusGained(java.awt.event.FocusEvent e) {
-                if (tf.getText().equals(placeholder)) {
-                    tf.setText("");
-                }
-            }
-
-            @Override
-            public void focusLost(java.awt.event.FocusEvent e) {
-                if (tf.getText().trim().isEmpty()) {
-                    tf.setText(placeholder);
-                }
-            }
-        });
-
-        // Rounded look wrapper (no external libs)
-        RoundedPanel wrapper = new RoundedPanel();
-        wrapper.setLayout(new BorderLayout());
-        wrapper.setBorder(new EmptyBorder(2, 2, 2, 2));
-        wrapper.add(tf, BorderLayout.CENTER);
-        wrapper.setOpaque(false);
-        wrapper.setAlignmentX(Component.LEFT_ALIGNMENT);
-
-        p.add(l);
-        p.add(Box.createVerticalStrut(6));
-        p.add(wrapper);
-        return p;
-    }
-
-    /**
-     * Create a horizontal notification row with label, description and a toggle
-     */
-    private JPanel notificationRow(String title, String description, boolean initialState) {
-        JPanel row = new JPanel(new BorderLayout());
-        row.setOpaque(false);
-        row.setBorder(new EmptyBorder(10, 6, 10, 6));
-
-        JPanel left = new JPanel();
-        left.setOpaque(false);
-        left.setLayout(new BoxLayout(left, BoxLayout.Y_AXIS));
-        JLabel t = new JLabel(title);
-        t.setFont(boldFont);
-        JLabel d = new JLabel(description);
-        d.setFont(new Font("Segoe UI", Font.PLAIN, 11));
-        d.setForeground(Color.DARK_GRAY);
-
-        left.add(t);
-        left.add(d);
-
-        // Toggle control
-        SimpleToggle toggle = new SimpleToggle(initialState);
-        allToggles.add(toggle);
-
-        JPanel right = new JPanel(new FlowLayout(FlowLayout.RIGHT));
-        right.setOpaque(false);
-        right.add(toggle);
-
-        row.add(left, BorderLayout.CENTER);
-        row.add(right, BorderLayout.EAST);
-
-        // optional separator line
-        JSeparator sep = new JSeparator();
-        sep.setForeground(new Color(220, 220, 220));
-        row.add(sep, BorderLayout.SOUTH);
-
-        return row;
-    }
-
-    private JPanel simpleKeyValue(String key, String value) {
-        JPanel p = new JPanel(new BorderLayout());
-        p.setOpaque(false);
-        p.setBorder(new EmptyBorder(8, 6, 8, 6));
-        JLabel k = new JLabel(key);
-        k.setFont(boldFont);
-        JLabel v = new JLabel(value);
-        v.setFont(normalFont);
-        v.setForeground(Color.DARK_GRAY);
-        p.add(k, BorderLayout.WEST);
-        p.add(v, BorderLayout.EAST);
-
-        JSeparator sep = new JSeparator();
-        sep.setForeground(new Color(230, 230, 230));
-        JPanel outer = new JPanel(new BorderLayout());
-        outer.setOpaque(false);
-        outer.add(p, BorderLayout.CENTER);
-        outer.add(sep, BorderLayout.SOUTH);
-        return outer;
-    }
-
-    // ---------------- Utility UI Builders ----------------
-
-    private JPanel keyValueDropdown(String key, JComboBox<String> combo) {
-        JPanel p = new JPanel(new BorderLayout());
-        p.setOpaque(false);
-        p.setBorder(new EmptyBorder(8, 6, 8, 6));
-
-        JLabel k = new JLabel(key);
-        k.setFont(boldFont);
-
-        combo.setFont(normalFont);
-        combo.setPreferredSize(new Dimension(180, 28));
-
-        p.add(k, BorderLayout.WEST);
-        p.add(combo, BorderLayout.EAST);
-
-        JSeparator sep = new JSeparator();
-        sep.setForeground(new Color(230, 230, 230));
-
-        JPanel outer = new JPanel(new BorderLayout());
-        outer.setOpaque(false);
-        outer.add(p, BorderLayout.CENTER);
-        outer.add(sep, BorderLayout.SOUTH);
-
-        return outer;
-    }
-    // ------------------- Custom Components -------------------
-
-    /**
-     * Simple rounded card panel that paints a white rounded background with a subtle border.
-     * Used to emulate the white content cards in the screenshots.
-     */
-    private class RoundedCardPanel extends JPanel {
-        public RoundedCardPanel() {
-            setOpaque(false);
-        }
-
-        @Override
-        protected void paintComponent(Graphics g) {
-            Graphics2D g2 = (Graphics2D) g.create();
-            g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-
-            int arc = 18;
-            // Background
-            g2.setColor(Color.WHITE);
-            g2.fillRoundRect(0, 0, getWidth(), getHeight(), arc, arc);
-
-            // Border
-            g2.setColor(new Color(220, 220, 220));
-            g2.drawRoundRect(0, 0, getWidth() - 1, getHeight() - 1, arc, arc);
-
-            g2.dispose();
-            super.paintComponent(g);
-        }
-
-        // ensure children are painted on transparent background
-        @Override
-        public boolean isOpaque() {
-            return false;
-        }
-    }
-
-    /**
-     * Generic rounded panel with no white fill (useful as wrappers).
-     */
-    private class RoundedPanel extends JPanel {
-        private final int arc = 12;
-
-        public RoundedPanel() {
-            setOpaque(false);
-        }
-
-        @Override
-        protected void paintComponent(Graphics g) {
-            Graphics2D g2 = (Graphics2D) g.create();
-            g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-            // subtle background slightly off-white to emulate input container
-            g2.setColor(new Color(245, 248, 252));
-            g2.fillRoundRect(0, 0, getWidth(), getHeight(), arc, arc);
-            g2.setColor(new Color(220, 220, 220));
-            g2.drawRoundRect(0, 0, getWidth() - 1, getHeight() - 1, arc, arc);
-            g2.dispose();
-            super.paintComponent(g);
-        }
-
-        @Override public boolean isOpaque() { return false; }
-    }
-
-    /**
-     * A very small toggle switch implemented purely in Swing (no libraries).
-     * Click to toggle state. Simple visuals; matches screenshot - dark when on.
-     */
-    private class SimpleToggle extends JComponent {
-        private boolean on;
-        private final int width = 42;
-        private final int height = 22;
-
-        public SimpleToggle(boolean initial) {
-            on = initial;
-            setPreferredSize(new Dimension(width, height));
-            setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-            addMouseListener(new MouseAdapter() {
-                @Override
-                public void mouseClicked(MouseEvent e) {
-                    on = !on;
-                    repaint();
-                }
-            });
-        }
-
-        public boolean isOn() { return on; }
-
-        @Override
-        protected void paintComponent(Graphics g) {
-            Graphics2D g2 = (Graphics2D) g.create();
-            g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-
-            int arc = height;
-            // background
-            if (on) g2.setColor(new Color(20, 20, 20)); // dark as in screenshot when enabled
-            else g2.setColor(new Color(230, 230, 230));
-
-            g2.fillRoundRect(0, 0, width, height, arc, arc);
-
-            // knob
-            int knobSize = height - 6;
-            int knobX = on ? width - knobSize - 3 : 3;
-            int knobY = 3;
-            g2.setColor(Color.WHITE);
-            g2.fillOval(knobX, knobY, knobSize, knobSize);
-
-            g2.dispose();
-        }
-    }
-
-    /**
-     * Tab button style used at the top to switch sections.
-     */
-    private class TabButton extends JPanel {
-        private final JLabel label;
-        private boolean selected = false;
-
-        public TabButton(String text, boolean sel) {
-            setOpaque(false);
-            setLayout(new BorderLayout());
-            label = new JLabel(text);
-            label.setFont(boldFont);
-            label.setForeground(sel ? Color.BLACK : new Color(90, 90, 90));
-            add(label, BorderLayout.CENTER);
-            setSelected(sel);
-            setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-
-            setBorder(new EmptyBorder(6, 10, 6, 10));
-        }
-
-        public void setSelected(boolean s) {
-            selected = s;
-            if (selected) {
-                label.setForeground(Color.BLACK);
-                // show underline by painting
-            } else {
-                label.setForeground(new Color(90, 90, 90));
-            }
-            repaint();
-        }
-
-        @Override
-        protected void paintComponent(Graphics g) {
-            super.paintComponent(g);
-
-            if (selected) {
-                Graphics2D g2 = (Graphics2D) g.create();
-                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                int w = getWidth();
-                int h = getHeight();
-                // Draw a subtle rounded underline under label (blue)
-                g2.setColor(new Color(92, 120, 224)); // activeColor similar to Dashboard
-                g2.fillRoundRect(8, h - 6, w - 16, 6, 6, 6);
-                g2.dispose();
-            }
-        }
-    }
-
-    /**
-     * A small pill-shaped rounded button used for Save/Cancel and Change Photo.
-     * If primary is true -> blue filled; otherwise light-gray bordered.
-     */
-    private class RoundedButton extends JButton {
-        private final boolean primary;
-
-        public RoundedButton(String text, boolean primary) {
-            super(text);
-            this.primary = primary;
-            setFont(new Font("Segoe UI", Font.BOLD, 12));
-            setForeground(primary ? Color.WHITE : Color.BLACK);
-            setContentAreaFilled(false);
-            setFocusPainted(false);
-            setBorderPainted(false);
-            setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-            setPreferredSize(new Dimension(120, 36));
-            setBorder(new EmptyBorder(8, 16, 8, 16));
-
-            addMouseListener(new MouseAdapter() {
-                @Override public void mouseEntered(MouseEvent e) { repaint(); }
-                @Override public void mouseExited(MouseEvent e) { repaint(); }
-            });
-        }
-
-        @Override
-        protected void paintComponent(Graphics g) {
-            Graphics2D g2 = (Graphics2D) g.create();
-            g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-            int w = getWidth();
-            int h = getHeight();
-            int arc = 14;
-            if (primary) {
-                g2.setColor(getBackground());    // use actual background
-                g2.fillRoundRect(0, 0, w, h, arc, arc);
-            } else {
-                g2.setColor(new Color(235, 238, 244));
-                g2.fillRoundRect(0, 0, w, h, arc, arc);
-                g2.setColor(new Color(200, 200, 200));
-                g2.drawRoundRect(0, 0, w - 1, h - 1, arc, arc);
-            }
-
-            // Text
-            FontMetrics fm = g2.getFontMetrics();
-            int sw = fm.stringWidth(getText());
-            int sh = fm.getAscent();
-            g2.setColor(getForeground());
-            g2.setFont(getFont());
-            g2.drawString(getText(), (w - sw) / 2, (h + sh) / 2 - 3);
-
-            g2.dispose();
-        }
-    }
-
+        // --- END CHANGE ---
+        
+        right.add(saveBtn);
+        
+        header.add(right, BorderLayout.EAST);
+
+        return header;
+    }
+
+    private JPanel buildSegmentedTabs() {
+        JPanel outer = new JPanel() {
+            @Override
+            protected void paintComponent(Graphics g) {
+                super.paintComponent(g);
+                Graphics2D g2 = (Graphics2D) g;
+                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                g2.setColor(tabContainerColor);
+                g2.fillRoundRect(0, 0, getWidth(), getHeight(), 20, 20);
+            }
+        };
+        outer.setOpaque(false);
+        outer.setLayout(new FlowLayout(FlowLayout.CENTER, 40, 14)); // Increased spacing for 5 tabs
+        outer.setBorder(new EmptyBorder(0, 0, 0, 0));
+
+        // FIVE TABS
+        JPanel t1 = makeTab("Profile", true);
+        JPanel t2 = makeTab("Pharmacy", false);
+        JPanel t3 = makeTab("Notifications", false);
+        JPanel t4 = makeTab("Security", false);
+        JPanel t5 = makeTab("Appearance", false);
+
+        currentTab = t1; // Set default
+
+        outer.add(t1);
+        outer.add(t2);
+        outer.add(t3);
+        outer.add(t4);
+        outer.add(t5);
+
+        // Click Logic
+        t1.addMouseListener(new TabClickListener(t1, "Profile"));
+        t2.addMouseListener(new TabClickListener(t2, "Pharmacy"));
+        t3.addMouseListener(new TabClickListener(t3, "Notifications"));
+        t4.addMouseListener(new TabClickListener(t4, "Security"));
+        t5.addMouseListener(new TabClickListener(t5, "Appearance"));
+
+        return outer;
+    }
+
+    // ---------------------------------------------------------
+    //  1. PROFILE SETTINGS
+    // ---------------------------------------------------------
+
+    private JPanel buildProfileSettings() {
+        JPanel card = createCardedPanel();
+        card.setLayout(new BoxLayout(card, BoxLayout.Y_AXIS));
+
+        addSectionTitle(card, "User Information");
+        
+        JPanel form = new JPanel(new GridLayout(0, 2, 20, 20));
+        form.setOpaque(false);
+        form.setAlignmentX(Component.LEFT_ALIGNMENT);
+        form.setMaximumSize(new Dimension(800, 200)); 
+
+        form.add(createFormGroup("Full Name", "Sample Name"));
+        form.add(createFormGroup("Role", "Admin/Pharmacist"));
+        form.add(createFormGroup("Contact Email", "sample@email.com"));
+        form.add(createFormGroup("Phone Number", "+63 123 4567 890"));
+
+        card.add(form);
+        card.add(Box.createVerticalGlue()); // Push everything up
+
+        return wrapInPadding(card);
+    }
+    
+    // ---------------------------------------------------------
+    //  2. PHARMACY SETTINGS
+    // ---------------------------------------------------------
+
+    private JPanel buildPharmacySettings() {
+        JPanel card = createCardedPanel();
+        card.setLayout(new BoxLayout(card, BoxLayout.Y_AXIS));
+
+        addSectionTitle(card, "Business Profile");
+        
+        JPanel form = new JPanel(new GridLayout(0, 2, 20, 20));
+        form.setOpaque(false);
+        form.setAlignmentX(Component.LEFT_ALIGNMENT);
+        form.setMaximumSize(new Dimension(800, 200)); 
+
+        form.add(createFormGroup("Pharmacy Name", "PharmaSys"));
+        form.add(createFormGroup("Business ID / License", "PH-1234-5678-L"));
+        
+        // Use a single component for address to span both columns
+        JPanel addressWrap = new JPanel(new BorderLayout());
+        addressWrap.setOpaque(false);
+        addressWrap.add(createFormGroup("Physical Address", "123 Medical Plaza, Sample Ave, Cebu City, Philippines"), BorderLayout.CENTER);
+        form.add(addressWrap);
+        form.add(Box.createVerticalStrut(0)); // Placeholder to keep grid layout
+
+        card.add(form);
+        card.add(Box.createVerticalStrut(20));
+
+        addSectionTitle(card, "Financial & Tax");
+        JPanel taxForm = new JPanel(new GridLayout(0, 2, 20, 20));
+        taxForm.setOpaque(false);
+        taxForm.setAlignmentX(Component.LEFT_ALIGNMENT);
+        taxForm.setMaximumSize(new Dimension(800, 100));
+        taxForm.add(createFormGroup("Default Tax Rate (%)", "12.0"));
+        taxForm.add(createFormGroup("Currency Symbol", "₱ (PHP)"));
+        
+        card.add(taxForm);
+        card.add(Box.createVerticalGlue()); 
+
+        return wrapInPadding(card);
+    }
+    
+    // ---------------------------------------------------------
+    //  3. NOTIFICATIONS SETTINGS
+    // ---------------------------------------------------------
+    
+    private JPanel buildNotificationSettings() {
+        JPanel card = createCardedPanel();
+        card.setLayout(new BoxLayout(card, BoxLayout.Y_AXIS));
+
+        addSectionTitle(card, "Inventory Alerts");
+        JCheckBox lowStock = new JCheckBox("Notify when stock is below safety threshold (10 units)");
+        styleCheckBox(lowStock);
+        lowStock.setSelected(true);
+        card.add(lowStock);
+        card.add(Box.createVerticalStrut(10));
+
+        JCheckBox expStock = new JCheckBox("Notify 30 days before medicine expiration date");
+        styleCheckBox(expStock);
+        expStock.setSelected(true);
+        card.add(expStock);
+
+        card.add(Box.createVerticalStrut(30));
+
+        addSectionTitle(card, "System and Reports");
+        JCheckBox dailyEmail = new JCheckBox("Send Daily Sales Summary to Admin Email");
+        styleCheckBox(dailyEmail);
+        dailyEmail.setSelected(true);
+        card.add(dailyEmail);
+        card.add(Box.createVerticalStrut(10));
+
+        JCheckBox backupNotify = new JCheckBox("Notify on successful data backup completion");
+        styleCheckBox(backupNotify);
+        card.add(backupNotify);
+
+        card.add(Box.createVerticalGlue());
+        return wrapInPadding(card);
+    }
+
+    // ---------------------------------------------------------
+    //  4. SECURITY SETTINGS
+    // ---------------------------------------------------------
+
+    private JPanel buildSecuritySettings() {
+        JPanel card = createCardedPanel();
+        card.setLayout(new BoxLayout(card, BoxLayout.Y_AXIS));
+
+        addSectionTitle(card, "Password Management");
+
+        JPanel form = new JPanel(new GridLayout(0, 1, 0, 15));
+        form.setOpaque(false);
+        form.setMaximumSize(new Dimension(400, 200)); // Narrower for passwords
+        form.setAlignmentX(Component.LEFT_ALIGNMENT);
+
+        form.add(createFormGroup("Current Password", "••••••••"));
+        form.add(createFormGroup("New Password", ""));
+        form.add(createFormGroup("Confirm New Password", ""));
+
+        card.add(form);
+        card.add(Box.createVerticalStrut(30));
+
+        addSectionTitle(card, "Access Control");
+        JCheckBox twoFa = new JCheckBox("Require Two-Factor Authentication (2FA) for login");
+        styleCheckBox(twoFa);
+        card.add(twoFa);
+        card.add(Box.createVerticalStrut(10));
+
+        JCheckBox autoLogout = new JCheckBox("Automatic logout after 30 minutes of inactivity");
+        styleCheckBox(autoLogout);
+        autoLogout.setSelected(true);
+        card.add(autoLogout);
+
+        card.add(Box.createVerticalGlue());
+        return wrapInPadding(card);
+    }
+
+    // ---------------------------------------------------------
+    //  5. APPEARANCE SETTINGS
+    // ---------------------------------------------------------
+
+    private JPanel buildAppearanceSettings() {
+        JPanel card = createCardedPanel();
+        card.setLayout(new BoxLayout(card, BoxLayout.Y_AXIS));
+
+        addSectionTitle(card, "Theme");
+        
+        // Theme selection using radio buttons for the Reports design language
+        ButtonGroup themeGroup = new ButtonGroup();
+        
+        JRadioButton lightTheme = new JRadioButton("Light Theme (Default)");
+        lightTheme.setSelected(true);
+        styleRadioButton(lightTheme);
+        
+        JRadioButton darkTheme = new JRadioButton("Dark Theme (Requires Restart)");
+        styleRadioButton(darkTheme);
+
+        themeGroup.add(lightTheme);
+        themeGroup.add(darkTheme);
+
+        card.add(lightTheme);
+        card.add(Box.createVerticalStrut(10));
+        card.add(darkTheme);
+        
+        card.add(Box.createVerticalStrut(30));
+        
+        addSectionTitle(card, "Display");
+        
+        JPanel fontSizePanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 0));
+        fontSizePanel.setOpaque(false);
+        fontSizePanel.setAlignmentX(Component.LEFT_ALIGNMENT);
+        
+        JLabel sizeLabel = new JLabel("Application Font Size:");
+        sizeLabel.setFont(new Font("Segoe UI", Font.BOLD, 13));
+        sizeLabel.setForeground(grayText);
+
+        String[] sizes = {"Small", "Medium (Default)", "Large"};
+        JComboBox<String> sizeChooser = new JComboBox<>(sizes);
+        sizeChooser.setSelectedIndex(1);
+        sizeChooser.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+        
+        fontSizePanel.add(sizeLabel);
+        fontSizePanel.add(sizeChooser);
+        
+        card.add(fontSizePanel);
+        
+        card.add(Box.createVerticalGlue());
+        return wrapInPadding(card);
+    }
+    
+    // ---------------------------------------------------------
+    //  COMPONENT STYLING & HELPERS
+    // ---------------------------------------------------------
+
+    private JPanel createFormGroup(String labelText, String placeholder) {
+        JPanel panel = new JPanel(new BorderLayout(0, 5));
+        panel.setOpaque(false);
+
+        JLabel label = new JLabel(labelText);
+        label.setFont(new Font("Segoe UI", Font.BOLD, 12));
+        label.setForeground(grayText);
+
+        JTextField field = roundedField(placeholder, 200);
+
+        panel.add(label, BorderLayout.NORTH);
+        panel.add(field, BorderLayout.CENTER);
+        return panel;
+    }
+
+    private JTextField roundedField(String text, int width) {
+        JTextField f = new JTextField(text);
+        f.setPreferredSize(new Dimension(width, 35));
+        f.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+        f.setForeground(text.contains("•") ? Color.BLACK : Color.GRAY);
+        
+        // Rounded background panel for fields, similar to the date picker in Reports
+        JPanel box = new JPanel(new BorderLayout());
+        box.setOpaque(false);
+        box.setBackground(inputBg);
+        
+        // Set the text field style
+        f.setBorder(new EmptyBorder(5, 10, 5, 10)); // Inner padding
+        f.setOpaque(false);
+        
+        // Custom background drawing
+        return new JTextField(text) {
+             { // Initialization block
+                setPreferredSize(new Dimension(width, 35));
+                setFont(new Font("Segoe UI", Font.PLAIN, 13));
+                setForeground(text.contains("•") ? Color.BLACK : Color.GRAY);
+                setBorder(new EmptyBorder(5, 10, 5, 10));
+                setOpaque(false);
+            }
+            @Override
+            protected void paintComponent(Graphics g) {
+                Graphics2D g2 = (Graphics2D) g.create();
+                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                g2.setColor(inputBg); // Soft background color
+                g2.fillRoundRect(0, 0, getWidth(), getHeight(), 12, 12);
+                g2.dispose();
+                super.paintComponent(g);
+            }
+        };
+    }
+
+    private void addSectionTitle(JPanel panel, String text) {
+        JLabel title = new JLabel(text);
+        title.setFont(new Font("Segoe UI", Font.BOLD, 16));
+        title.setForeground(blue);
+        title.setAlignmentX(Component.LEFT_ALIGNMENT);
+        title.setBorder(new EmptyBorder(0, 0, 15, 0));
+        panel.add(title);
+    }
+
+    private void styleCheckBox(JCheckBox box) {
+        box.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        box.setOpaque(false);
+        box.setFocusPainted(false);
+        box.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        box.setAlignmentX(Component.LEFT_ALIGNMENT);
+    }
+    
+    private void styleRadioButton(JRadioButton button) {
+        button.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        button.setOpaque(false);
+        button.setFocusPainted(false);
+        button.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        button.setAlignmentX(Component.LEFT_ALIGNMENT);
+    }
+
+    private void stylePrimaryButton(JButton b) {
+        b.setFocusPainted(false);
+        b.setContentAreaFilled(false);
+        b.setBorderPainted(false);
+        b.setOpaque(false);
+        b.setForeground(Color.WHITE);
+        b.setFont(new Font("Segoe UI", Font.BOLD, 13));
+        b.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        b.setBorder(new EmptyBorder(8, 20, 8, 20));
+
+        b.addMouseListener(new MouseAdapter() {
+            public void mouseEntered(MouseEvent e) { b.repaint(); }
+            public void mouseExited(MouseEvent e) { b.repaint(); }
+        });
+
+        b.setUI(new javax.swing.plaf.basic.BasicButtonUI() {
+            @Override
+            public void paint(Graphics g, JComponent c) {
+                Graphics2D g2 = (Graphics2D) g;
+                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                JButton btn = (JButton) c;
+                g2.setColor(btn.getModel().isRollover() ? hoverBlue : blue);
+                g2.fillRoundRect(0, 0, c.getWidth(), c.getHeight(), 20, 20);
+                super.paint(g, c);
+            }
+        });
+    }
+
+    private JPanel createCardedPanel() {
+        JPanel card = new JPanel() {
+            @Override
+            protected void paintComponent(Graphics g) {
+                super.paintComponent(g);
+                Graphics2D g2 = (Graphics2D) g;
+                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                g2.setColor(Color.WHITE);
+                g2.fillRoundRect(0, 0, getWidth(), getHeight(), 18, 18);
+                g2.setColor(new Color(220, 220, 220));
+                g2.drawRoundRect(0, 0, getWidth() - 1, getHeight() - 1, 18, 18);
+            }
+        };
+        card.setOpaque(false);
+        card.setBorder(new EmptyBorder(25, 25, 25, 25)); // Inner padding of the card
+        
+        return card;
+    }
+    
+    private JPanel wrapInPadding(JPanel card) {
+        JPanel p = new JPanel(new BorderLayout());
+        p.setOpaque(false);
+        p.setBorder(new EmptyBorder(10, 10, 10, 10));
+        p.add(card, BorderLayout.CENTER);
+        return p;
+    }
+
+    // ---------------------------------------------------------
+    //  TAB LOGIC (IDENTICAL TO REPORTS)
+    // ---------------------------------------------------------
+    
+    private JPanel makeTab(String name, boolean active) {
+        JPanel tab = new JPanel() {
+            @Override
+            protected void paintComponent(Graphics g) {
+                super.paintComponent(g);
+                Graphics2D g2 = (Graphics2D) g;
+                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                g2.setColor(getBackground());
+                g2.fillRoundRect(0, 0, getWidth(), getHeight(), 18, 18);
+            }
+        };
+        tab.setLayout(new GridBagLayout());
+        tab.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        tab.setOpaque(false);
+        tab.setPreferredSize(new Dimension(160, 36)); 
+        tab.setBorder(new EmptyBorder(6, 10, 6, 10));
+
+        JLabel lbl = new JLabel(name);
+        lbl.setFont(new Font("Segoe UI", Font.BOLD, 13));
+        lbl.setForeground(Color.BLACK);
+        tab.add(lbl);
+
+        tab.setBackground(active ? tabActive : tabNormal);
+
+        tab.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseEntered(MouseEvent e) {
+                if (tab != currentTab) tab.setBackground(tabHover);
+            }
+            @Override
+            public void mouseExited(MouseEvent e) {
+                if (tab != currentTab) tab.setBackground(tabNormal);
+            }
+        });
+        return tab;
+    }
+
+    private void setActiveTab(JPanel newTab) {
+        if (currentTab != null) {
+            currentTab.setBackground(tabNormal);
+            currentTab.repaint();
+        }
+        newTab.setBackground(tabActive);
+        currentTab = newTab;
+        newTab.repaint();
+    }
+
+    private class TabClickListener extends MouseAdapter {
+        private final JPanel tab;
+        private final String cardName;
+
+        public TabClickListener(JPanel tab, String cardName) {
+            this.tab = tab;
+            this.cardName = cardName;
+        }
+        @Override
+        public void mouseClicked(MouseEvent e) {
+            setActiveTab(tab);
+            innerCards.show(innerContainer, cardName);
+        }
+    }
 }
