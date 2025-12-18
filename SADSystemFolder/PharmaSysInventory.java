@@ -1,12 +1,9 @@
-package SAD;
-
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.LineBorder;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableRowSorter;
-
 import java.awt.*;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
@@ -35,9 +32,6 @@ public class PharmaSysInventory extends JPanel {
     Color blue = new Color(79, 107, 201);
     Color bgGray = new Color(208, 217, 232);
 
-    // ==========================
-    // VALID LOCATION FOR POPUP
-    // ==========================
     private void openAddItemDialog(DefaultTableModel model) {
 
         JTextField idField = new JTextField();
@@ -94,16 +88,12 @@ public class PharmaSysInventory extends JPanel {
         }
     }
 
-    // ==========================
-    // CONSTRUCTOR
-    // ==========================
     public PharmaSysInventory() {
 
         setLayout(new BorderLayout());
         setBackground(bgGray);
         setBorder(new EmptyBorder(0, 0, 0, 0));
 
-        // HEADER
         JPanel header = new JPanel();
         header.setLayout(new BoxLayout(header, BoxLayout.Y_AXIS));
         header.setOpaque(false);
@@ -120,11 +110,9 @@ public class PharmaSysInventory extends JPanel {
 
         add(header, BorderLayout.NORTH);
 
-        // CENTER
         JPanel centerPanel = new JPanel(new BorderLayout());
         centerPanel.setOpaque(false);
 
-        // TOOLS BAR
         JPanel tools = new JPanel();
         tools.setLayout(new BoxLayout(tools, BoxLayout.X_AXIS));
         tools.setOpaque(false);
@@ -140,7 +128,6 @@ public class PharmaSysInventory extends JPanel {
                 new EmptyBorder(5, 10, 5, 10)
         ));
 
-        // CATEGORY + ADD BUTTON
         JComboBox<String> category = new JComboBox<>();
         category.setPreferredSize(new Dimension(200, 35));
         category.setMaximumSize(new Dimension(200, 35));
@@ -168,7 +155,6 @@ public class PharmaSysInventory extends JPanel {
 
         centerPanel.add(tools, BorderLayout.NORTH);
 
-        // TABLE
         String[] cols = {
                 "Medicine ID", "Name", "Generic Name", "Category",
                 "Stock", "Price", "Status", "Expiry Date", "Action"
@@ -190,7 +176,6 @@ public class PharmaSysInventory extends JPanel {
         TableRowSorter<DefaultTableModel> sorter = new TableRowSorter<>(model);
         table.setRowSorter(sorter);
 
-        // SEARCH LOGIC
         search.addKeyListener(new KeyAdapter() {
             @Override
             public void keyReleased(KeyEvent e) {
@@ -220,19 +205,15 @@ public class PharmaSysInventory extends JPanel {
             }
         });
 
-        // ADD BUTTON FUNCTION
         addBtn.addActionListener(e -> openAddItemDialog(model));
 
-        // TABLE STYLING
         table.setRowHeight(65);
         table.setFont(new Font("Segoe UI", Font.PLAIN, 12));
         table.getTableHeader().setFont(new Font("Segoe UI", Font.BOLD, 14));
 
-        // REMOVE GRID LINES
         table.setShowGrid(false);
         table.setIntercellSpacing(new Dimension(0, 0));
 
-        // CENTER RENDER
         DefaultTableCellRenderer center = new DefaultTableCellRenderer();
         center.setHorizontalAlignment(SwingConstants.CENTER);
 
@@ -240,7 +221,6 @@ public class PharmaSysInventory extends JPanel {
             table.getColumnModel().getColumn(i).setCellRenderer(center);
         }
 
-        // Medicine ID - blue
         table.getColumnModel().getColumn(0).setCellRenderer(new DefaultTableCellRenderer() {
             @Override
             public Component getTableCellRendererComponent(JTable table, Object value,
@@ -252,7 +232,6 @@ public class PharmaSysInventory extends JPanel {
             }
         });
 
-        // Status Renderer
         table.getColumnModel().getColumn(6).setCellRenderer(new DefaultTableCellRenderer() {
             @Override
             public Component getTableCellRendererComponent(JTable table, Object value,
