@@ -4,7 +4,6 @@ import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.JTableHeader;
 import javax.swing.table.DefaultTableCellRenderer;
-
 import java.awt.*;
 
 public class PharmaSysReports extends JPanel {
@@ -24,7 +23,7 @@ public class PharmaSysReports extends JPanel {
     private JPanel innerContainer;
 
     private ImageIcon loadChart(String fileName) {
-    return new ImageIcon(getClass().getResource("/SAD/img/" + fileName));
+    return new ImageIcon(getClass().getResource("/img/" + fileName));
 }
 
     private JPanel chartImagePanel(String title, String imagePath) {
@@ -37,15 +36,20 @@ public class PharmaSysReports extends JPanel {
             new EmptyBorder(12,12,12,12)
     ));
 
-    // Title label (top)
     JLabel lblTitle = new JLabel(title);
     lblTitle.setFont(new Font("Segoe UI", Font.BOLD, 14));
     panel.add(lblTitle, BorderLayout.NORTH);
 
-    // Image label (center)
-    ImageIcon icon = new ImageIcon(imagePath);
+    ImageIcon icon = loadChart(imagePath);
 
-    // Scale image to fit container
+    if (icon.getIconWidth() <= 0) {
+        panel.add(
+            new JLabel("Image not found", SwingConstants.CENTER),
+            BorderLayout.CENTER
+        );
+        return panel;
+    }
+
     Image scaled = icon.getImage().getScaledInstance(1080, 250, Image.SCALE_SMOOTH);
     JLabel imgLabel = new JLabel(new ImageIcon(scaled));
     imgLabel.setHorizontalAlignment(SwingConstants.CENTER);
@@ -59,26 +63,22 @@ public class PharmaSysReports extends JPanel {
         setLayout(new BorderLayout());
         setOpaque(false);
 
-        // Outer content wrapper (mimic your Dashboard content spacing)
         JPanel wrapper = new JPanel(new BorderLayout());
         wrapper.setOpaque(false);
         wrapper.setBorder(new EmptyBorder(0,0,0,0));
 
-        // --- Header: Title + Subtitle + right-side export ---
         wrapper.add(buildTopControls(), BorderLayout.NORTH);
 
-        // --- Tabs-like segmented control and main body ---
         JPanel center = new JPanel(new BorderLayout());
         center.setOpaque(false);
 
         JPanel tabsWithSpace = new JPanel(new BorderLayout());
         tabsWithSpace.setOpaque(false);
-        tabsWithSpace.setBorder(new EmptyBorder(10, 0, 10, 0));  // <-- SPACE BELOW THE TABS
+        tabsWithSpace.setBorder(new EmptyBorder(10, 0, 10, 0));  
         tabsWithSpace.add(buildSegmentedTabs(), BorderLayout.CENTER);
 
         center.add(tabsWithSpace, BorderLayout.NORTH);
 
-        // inner container where each "tab page" will be shown
         innerCards = new CardLayout();
         innerContainer = new JPanel(innerCards);
         innerContainer.setOpaque(false);
@@ -88,7 +88,7 @@ public class PharmaSysReports extends JPanel {
         innerContainer.add(buildTopMedicinePage(), "TopMedicine");
         innerContainer.add(buildCashierPerformancePage(), "Cashier");
 
-        innerCards.show(innerContainer, "Daily"); // default
+        innerCards.show(innerContainer, "Daily"); 
         center.add(innerContainer, BorderLayout.CENTER);
         wrapper.add(center, BorderLayout.CENTER);
         add(wrapper, BorderLayout.CENTER);
@@ -104,15 +104,12 @@ public class PharmaSysReports extends JPanel {
                 new EmptyBorder(12,12,12,12)
         ));
 
-         // Title
         JLabel lblTitle = new JLabel("6-Month Sales & Profit Overview");
         lblTitle.setFont(new Font("Segoe UI", Font.BOLD, 14));
         panel.add(lblTitle, BorderLayout.NORTH);
 
-        // Image (CHANGE PATH)
-        ImageIcon icon = new ImageIcon("SAD/img/6-MonthSales.jpg");
+        ImageIcon icon = loadChart("6-MonthSales.jpg");
 
-        // Resize here
         Image scaled = icon.getImage().getScaledInstance(1080, 180, Image.SCALE_SMOOTH);
         JLabel imgLabel = new JLabel(new ImageIcon(scaled));
         imgLabel.setHorizontalAlignment(SwingConstants.CENTER);
@@ -125,7 +122,6 @@ public class PharmaSysReports extends JPanel {
     private void addPlaceholder(JTextField field, String placeholder) {
     field.setForeground(Color.GRAY);
 
-    // When focus gained: remove placeholder
     field.addFocusListener(new java.awt.event.FocusAdapter() {
         @Override
         public void focusGained(java.awt.event.FocusEvent e) {
@@ -154,7 +150,6 @@ public class PharmaSysReports extends JPanel {
         label.setFont(new Font("Segoe UI", Font.BOLD, 12));
         label.setBorder(new EmptyBorder(0, 0, 4, 0));
 
-        // Rounded background panel
         JPanel box = new JPanel(null) {
             @Override
             protected void paintComponent(Graphics g) {
@@ -168,7 +163,6 @@ public class PharmaSysReports extends JPanel {
         box.setPreferredSize(new Dimension(220, 36));
         box.setOpaque(false);
 
-        // Text field
         JTextField field = new JTextField("MM/DD/YYYY");
         field.setBorder(null);
         field.setOpaque(false);
@@ -178,8 +172,7 @@ public class PharmaSysReports extends JPanel {
 
         addPlaceholder(field, "MM/DD/YYYY");
 
-        // Calendar button
-        JButton calBtn = new JButton(new ImageIcon("SAD/icons/calendar.png"));
+        JButton calBtn = new JButton(new ImageIcon("/icons/calendar.png"));
         calBtn.setBounds(180, 5, 24, 24);
         calBtn.setBorder(null);
         calBtn.setContentAreaFilled(false);
@@ -195,13 +188,11 @@ public class PharmaSysReports extends JPanel {
         return container;
     }
 
-    // ---------------- Top Controls (date filters + export) ----------------
     private JPanel buildTopControls() {
         JPanel top = new JPanel(new BorderLayout());
         top.setOpaque(false);
         top.setBorder(new EmptyBorder(0, 0, 0, 0));
 
-        // LEFT SIDE — title + subtitle + date filters BELOW
         JPanel left = new JPanel();
         left.setLayout(new BoxLayout(left, BoxLayout.Y_AXIS));
         left.setOpaque(false);
@@ -217,10 +208,8 @@ public class PharmaSysReports extends JPanel {
         s.setAlignmentX(Component.LEFT_ALIGNMENT);
         left.add(s);
 
-        // Add space
         left.add(Box.createVerticalStrut(4));
 
-        // DATE FILTERS (Start + End)
         JPanel dateRow = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 10));
         dateRow.setBorder(new EmptyBorder(0, 0, 4, 0));
         dateRow.setOpaque(false);
@@ -233,7 +222,6 @@ public class PharmaSysReports extends JPanel {
 
         top.add(left, BorderLayout.WEST);
 
-        // RIGHT SIDE — export + filter buttons
         JPanel right = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 10));
         right.setOpaque(false);
         right.setBorder(new EmptyBorder(67, 0, 0, 0));
@@ -244,7 +232,6 @@ public class PharmaSysReports extends JPanel {
         JButton apply = new JButton("Apply Filter");
         stylePrimaryButton(apply);
 
-        // EXPORT ALL REPORTS BUTTON FUNCTION
         export.addActionListener(e -> {
             JOptionPane.showMessageDialog(
                 this,
@@ -254,7 +241,6 @@ public class PharmaSysReports extends JPanel {
             );
         });
 
-        // APPLY FILTER BUTTON FUNCTION
         apply.addActionListener(e -> {
             JOptionPane.showMessageDialog(
                 this,
@@ -286,7 +272,6 @@ public class PharmaSysReports extends JPanel {
 
         f.setBackground(cardBg);
 
-        // ADD THIS: apply placeholder behavior
         addPlaceholder(f, "MM/DD/YYYY");
 
         return f;
@@ -300,10 +285,7 @@ public class PharmaSysReports extends JPanel {
         b.setForeground(Color.WHITE);
         b.setFont(new Font("Segoe UI", Font.BOLD, 12));
         b.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-
         b.setBorder(new EmptyBorder(10, 18, 10, 18));
-
-        // Custom round background
         b.setUI(new javax.swing.plaf.basic.BasicButtonUI() {
             @Override
             public void paint(Graphics g, JComponent c) {
@@ -318,7 +300,6 @@ public class PharmaSysReports extends JPanel {
         });
     }
 
-    // ---------------- Segmented Tabs (Daily / Monthly / Top / Cashier) ----------------
     private JPanel buildSegmentedTabs() {
 
         JPanel outer = new JPanel() {
@@ -329,13 +310,13 @@ public class PharmaSysReports extends JPanel {
                 g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
                 g2.setColor(tabContainerColor);
-                g2.fillRoundRect(0, 0, getWidth(), getHeight(), 20, 20); // rounded container
+                g2.fillRoundRect(0, 0, getWidth(), getHeight(), 20, 20); 
             }
         };
 
         outer.setOpaque(false);
         outer.setLayout(new FlowLayout(FlowLayout.CENTER, 70, 14)); 
-        outer.setBorder(new EmptyBorder(0, 0, 0, 0));  // More padding = bigger container
+        outer.setBorder(new EmptyBorder(0, 0, 0, 0));  
 
         JPanel t1 = makeTab("Daily Sales", true);
         JPanel t2 = makeTab("Monthly Summary", false);
@@ -349,7 +330,6 @@ public class PharmaSysReports extends JPanel {
         outer.add(t3);
         outer.add(t4);
 
-        // CLICK HANDLERS
         t1.addMouseListener(new java.awt.event.MouseAdapter() {
             @Override public void mouseClicked(java.awt.event.MouseEvent e) {
                 setActiveTab(t1);
@@ -380,14 +360,12 @@ public class PharmaSysReports extends JPanel {
 
         return outer;
     }
-    // ---------------- DAILY SALES PAGE ----------------
     private JPanel buildDailySalesPage() {
 
         JPanel page = new JPanel(new BorderLayout());
         page.setOpaque(false);
         page.setBorder(new EmptyBorder(0,0,0,0));
 
-        // ------------------ METRICS ROW (standalone, NOT inside main white card) ------------------
         JPanel metrics = new JPanel(new GridLayout(1, 3, 16, 0));
         metrics.setOpaque(false);
 
@@ -397,21 +375,20 @@ public class PharmaSysReports extends JPanel {
 
         page.add(metrics, BorderLayout.NORTH);
 
-        // ------------------ MAIN WHITE ROUNDED CONTAINER (chart only) ------------------
-        JPanel roundedCard = createCardedPanel();   // white rounded panel
+        JPanel roundedCard = createCardedPanel();   
         roundedCard.setLayout(new BorderLayout());
         roundedCard.setBorder(new EmptyBorder(5,5,5,5));
 
         roundedCard.add(chartImagePanel(
-        "Hourly Sales Trend (Sales $ vs Transactions)",
-        "SAD/img/HourlySalesTrend.jpg"
-        ), BorderLayout.CENTER);
+        "Hourly Sales Trend (Sales ₱ vs Transactions)",
+        "HourlySalesTrend.jpg"
+    ), BorderLayout.CENTER);
 
 
-        // Wrapper so chart moves down properly
+
         JPanel centerWrap = new JPanel(new BorderLayout());
         centerWrap.setOpaque(false);
-        centerWrap.setBorder(new EmptyBorder(10, 0, 0, 0)); // <-- SPACE HERE
+        centerWrap.setBorder(new EmptyBorder(10, 0, 0, 0)); 
         centerWrap.add(roundedCard, BorderLayout.CENTER);
 
         page.add(centerWrap, BorderLayout.CENTER);
@@ -419,16 +396,12 @@ public class PharmaSysReports extends JPanel {
         return page;
     }
 
-    // ---------------- MONTHLY SUMMARY PAGE ----------------
     private JPanel buildMonthlySummaryPage() {
         JPanel root = new JPanel();
         root.setOpaque(false);
         root.setLayout(new BoxLayout(root, BoxLayout.Y_AXIS));
         root.setBorder(new EmptyBorder(0,0,0,0));
 
-        // ============================================================
-        // CARD 1 — 6-Month Sales & Profit Overview (Chart Section)
-        // ============================================================
         JPanel chartCard = createCardedPanel();
         chartCard.setLayout(new BorderLayout());
         chartCard.setBorder(new EmptyBorder(5,5,5,5));
@@ -436,11 +409,8 @@ public class PharmaSysReports extends JPanel {
         chartCard.add(monthlySummaryImagePanel(), BorderLayout.CENTER);
 
         root.add(chartCard);
-        root.add(Box.createVerticalStrut(10)); // spacing between cards
+        root.add(Box.createVerticalStrut(10)); 
 
-        // ============================================================
-        // CARD 2 — Monthly Summary Table
-        // ============================================================
         JPanel tableCard = createCardedPanel();
         tableCard.setLayout(new BorderLayout());
         tableCard.setBorder(new EmptyBorder(16,16,16,16));
@@ -451,8 +421,6 @@ public class PharmaSysReports extends JPanel {
 
         tableCard.add(tableTitle, BorderLayout.NORTH);
 
-
-        // ========== TABLE CONTENT ==========
         String[] cols = {"Month", "Sales", "Profit", "Margin"};
         Object[][] rows = {
                 {"January", "$24,500", "$4,900", "20.0%"},
@@ -468,7 +436,6 @@ public class PharmaSysReports extends JPanel {
             public boolean isCellEditable(int r, int c) { return false; }
         };
 
-        // Table styling (same as before)
         table.setRowHeight(28);
         table.setFont(new Font("Segoe UI", Font.BOLD, 12));
         table.setShowGrid(false);
@@ -481,7 +448,6 @@ public class PharmaSysReports extends JPanel {
         header.setBackground(new Color(245, 248, 252));
         header.setForeground(Color.BLACK);
 
-        // Profit green
         DefaultTableCellRenderer greenRenderer = new DefaultTableCellRenderer() {
             @Override
             public Component getTableCellRendererComponent(
@@ -508,175 +474,153 @@ public class PharmaSysReports extends JPanel {
 
         tableCard.add(scroll, BorderLayout.CENTER);
 
-
         root.add(tableCard);
 
         return root;
     }
 
-    // ---------------- TOP MEDICINE PAGE ----------------
-    // ---------------- TOP MEDICINE PAGE ----------------
-private JPanel buildTopMedicinePage() {
-    JPanel p = createCardedPanel();
-    p.setLayout(new BorderLayout());
-    p.setBorder(new EmptyBorder(12,12,12,12));
+    private JPanel buildTopMedicinePage() {
+        JPanel p = createCardedPanel();
+        p.setLayout(new BorderLayout());
+        p.setBorder(new EmptyBorder(12,12,12,12));
 
-    // TITLE
-    JLabel title = new JLabel("Top Selling Medicines (This Month)");
-    title.setFont(new Font("Segoe UI", Font.BOLD, 20));
-    p.add(title, BorderLayout.NORTH);
+        JLabel title = new JLabel("Top Selling Medicines (This Month)");
+        title.setFont(new Font("Segoe UI", Font.BOLD, 20));
+        p.add(title, BorderLayout.NORTH);
 
-    // TABLE DATA
-    String[] cols = {"Rank", "Medicine Name", "Units Sold", "Revenue", "Profit Margin"};
-    Object[][] rows = {
-            {"1", "Paracetamol 500mg", "1,245", "$3,112.50", "45%"},
-            {"2", "Ibuprofen 400mg", "856", "$7,276.00", "52%"},
-            {"3", "Amoxicillin 250mg", "742", "$2,374.40", "48%"},
-            {"4", "Metformin 500mg", "634", "$3,170.00", "50%"},
-            {"5", "Vitamin C 1000mg", "589", "$3,828.50", "55%"},
-    };
+        String[] cols = {"Rank", "Medicine Name", "Units Sold", "Revenue", "Profit Margin"};
+        Object[][] rows = {
+                {"1", "Paracetamol 500mg", "1,245", "$3,112.50", "45%"},
+                {"2", "Ibuprofen 400mg", "856", "$7,276.00", "52%"},
+                {"3", "Amoxicillin 250mg", "742", "$2,374.40", "48%"},
+                {"4", "Metformin 500mg", "634", "$3,170.00", "50%"},
+                {"5", "Vitamin C 1000mg", "589", "$3,828.50", "55%"},
+        };
 
-    JTable table = new JTable(new DefaultTableModel(rows, cols)) {
+        JTable table = new JTable(new DefaultTableModel(rows, cols)) {
+            @Override
+            public boolean isCellEditable(int r, int c) { return false; }
+        };
+
+        table.setRowHeight(40);
+        table.setFont(new Font("Segoe UI", Font.BOLD, 13));
+        table.setShowGrid(false);
+        table.setIntercellSpacing(new Dimension(0, 0));
+        table.setFillsViewportHeight(true);
+
+        JTableHeader header = table.getTableHeader();
+        header.setPreferredSize(new Dimension(header.getWidth(), 32));
+        header.setFont(new Font("Segoe UI", Font.BOLD, 18));
+        header.setBackground(new Color(245, 248, 252));
+        header.setForeground(Color.BLACK);
+
+        DefaultTableCellRenderer rankRenderer = new DefaultTableCellRenderer();
+        rankRenderer.setHorizontalAlignment(JLabel.CENTER); 
+        table.getColumnModel().getColumn(0).setCellRenderer(rankRenderer);
+
+        DefaultTableCellRenderer center = new DefaultTableCellRenderer();
+        center.setHorizontalAlignment(JLabel.CENTER);
+        table.getColumnModel().getColumn(1).setCellRenderer(center);
+        table.getColumnModel().getColumn(2).setCellRenderer(center); 
+        table.getColumnModel().getColumn(3).setCellRenderer(center); 
+
+        DefaultTableCellRenderer marginRenderer = new DefaultTableCellRenderer() {
+            @Override
+            public Component getTableCellRendererComponent(
+                    JTable t, Object v, boolean s, boolean f, int r, int c) {
+                JLabel lbl = (JLabel) super.getTableCellRendererComponent(t, v, s, f, r, c);
+                lbl.setForeground(new Color(0, 135, 0));
+                lbl.setHorizontalAlignment(JLabel.CENTER);
+                lbl.setFont(new Font("Segoe UI", Font.BOLD, 13));
+                return lbl;
+            }
+        };
+        table.getColumnModel().getColumn(4).setCellRenderer(marginRenderer);
+
+        JScrollPane scroll = new JScrollPane(table);
+        scroll.setBorder(new EmptyBorder(12,0,0,0));
+        scroll.getViewport().setBackground(Color.WHITE);
+
+        p.add(scroll, BorderLayout.CENTER);
+        return p;
+    }
+
+    class RoundedBorder implements Border {
+
+        private int radius;
+        RoundedBorder(int r) { radius = r; }
+
         @Override
-        public boolean isCellEditable(int r, int c) { return false; }
-    };
-
-    // BASIC STYLING
-    table.setRowHeight(40);
-    table.setFont(new Font("Segoe UI", Font.BOLD, 13));
-    table.setShowGrid(false);
-    table.setIntercellSpacing(new Dimension(0, 0));
-    table.setFillsViewportHeight(true);
-
-    JTableHeader header = table.getTableHeader();
-    header.setPreferredSize(new Dimension(header.getWidth(), 32));
-    header.setFont(new Font("Segoe UI", Font.BOLD, 18));
-    header.setBackground(new Color(245, 248, 252));
-    header.setForeground(Color.BLACK);
-
-    // ------------------- RANK COLUMN -------------------
-    DefaultTableCellRenderer rankRenderer = new DefaultTableCellRenderer();
-    rankRenderer.setHorizontalAlignment(JLabel.CENTER); // center the numbers
-    table.getColumnModel().getColumn(0).setCellRenderer(rankRenderer);
-
-    // CENTER ALL OTHER COLUMNS
-    DefaultTableCellRenderer center = new DefaultTableCellRenderer();
-    center.setHorizontalAlignment(JLabel.CENTER);
-    table.getColumnModel().getColumn(1).setCellRenderer(center); // Medicine Name
-    table.getColumnModel().getColumn(2).setCellRenderer(center); // Units Sold
-    table.getColumnModel().getColumn(3).setCellRenderer(center); // Revenue
-
-    // PROFIT MARGIN GREEN + CENTER
-    DefaultTableCellRenderer marginRenderer = new DefaultTableCellRenderer() {
-        @Override
-        public Component getTableCellRendererComponent(
-                JTable t, Object v, boolean s, boolean f, int r, int c) {
-            JLabel lbl = (JLabel) super.getTableCellRendererComponent(t, v, s, f, r, c);
-            lbl.setForeground(new Color(0, 135, 0));
-            lbl.setHorizontalAlignment(JLabel.CENTER);
-            lbl.setFont(new Font("Segoe UI", Font.BOLD, 13));
-            return lbl;
+        public Insets getBorderInsets(Component c) {
+            return new Insets(radius+1, radius+1, radius+1, radius+1);
         }
-    };
-    table.getColumnModel().getColumn(4).setCellRenderer(marginRenderer);
 
-    // SCROLLPANE
-    JScrollPane scroll = new JScrollPane(table);
-    scroll.setBorder(new EmptyBorder(12,0,0,0));
-    scroll.getViewport().setBackground(Color.WHITE);
-
-    p.add(scroll, BorderLayout.CENTER);
-    return p;
-}
-
-
-// Helper for rank circular badge
-class RoundedBorder implements Border {
-
-    private int radius;
-    RoundedBorder(int r) { radius = r; }
-
-    @Override
-    public Insets getBorderInsets(Component c) {
-        return new Insets(radius+1, radius+1, radius+1, radius+1);
-    }
-
-    @Override
-    public boolean isBorderOpaque() { return false; }
-
-    @Override
-    public void paintBorder(Component c, Graphics g, int x, int y, int w, int h) {
-        g.setColor(c.getBackground());
-        g.fillOval(x, y, w-1, h-1);
-    }
-}
-
-    // ---------------- CASHIER PERFORMANCE PAGE ----------------
-    private JPanel buildCashierPerformancePage() {
-
-    JPanel p = createCardedPanel();
-    p.setLayout(new BorderLayout());
-    p.setBorder(new EmptyBorder(12,12,12,12));
-
-    // TITLE — same style as screenshot
-    JLabel title = new JLabel("Cashier Performance (This Month)");
-    title.setFont(new Font("Segoe UI", Font.BOLD, 20));
-    title.setBorder(new EmptyBorder(4, 2, 12, 0));
-    p.add(title, BorderLayout.NORTH);
-
-    // TABLE DATA
-    String[] cols = {"Cashier Name", "Total Sales", "Transactions", "Avg Sale Value"};
-    Object[][] rows = {
-            {"Sarah Johnson", "$45,600", "218", "$194.87"},
-            {"Michael Chen", "$42,300", "234", "$194.04"},
-            {"Emily Davis", "$38,900", "201", "$193.53"},
-            {"James Wilson", "$35,200", "189", "$186.24"}
-    };
-
-    JTable table = new JTable(new DefaultTableModel(rows, cols)) {
         @Override
-        public boolean isCellEditable(int r, int c) { return false; }
-    };
+        public boolean isBorderOpaque() { return false; }
 
-    // ------------------------------------------------------
-    // TABLE STYLING — (matches the screenshot exactly)
-    // ------------------------------------------------------
-    table.setRowHeight(36);
-    table.setFont(new Font("Segoe UI", Font.BOLD, 13));
-    table.setShowGrid(false);
-    table.setIntercellSpacing(new Dimension(0, 0));
-    table.setFillsViewportHeight(true);
-    table.setBackground(Color.WHITE);
+        @Override
+        public void paintBorder(Component c, Graphics g, int x, int y, int w, int h) {
+            g.setColor(c.getBackground());
+            g.fillOval(x, y, w-1, h-1);
+        }
+    }
 
-    // HEADER STYLING
-    JTableHeader header = table.getTableHeader();
-    header.setPreferredSize(new Dimension(header.getWidth(), 34));
-    header.setFont(new Font("Segoe UI", Font.BOLD, 18));
-    header.setBackground(new Color(245, 248, 252));   // soft gray-blue
-    header.setForeground(Color.BLACK);
-    header.setBorder(new EmptyBorder(6, 10, 6, 10));
+        private JPanel buildCashierPerformancePage() {
 
-    // CENTER align numeric columns
-    DefaultTableCellRenderer center = new DefaultTableCellRenderer();
-    center.setHorizontalAlignment(JLabel.CENTER);
+        JPanel p = createCardedPanel();
+        p.setLayout(new BorderLayout());
+        p.setBorder(new EmptyBorder(12,12,12,12));
 
-    table.getColumnModel().getColumn(0).setCellRenderer(center); // Cashier Name
-    table.getColumnModel().getColumn(1).setCellRenderer(center); // Total Sales
-    table.getColumnModel().getColumn(2).setCellRenderer(center); // Transactions
-    table.getColumnModel().getColumn(3).setCellRenderer(center); // Avg Sale Value
+        JLabel title = new JLabel("Cashier Performance (This Month)");
+        title.setFont(new Font("Segoe UI", Font.BOLD, 20));
+        title.setBorder(new EmptyBorder(4, 2, 12, 0));
+        p.add(title, BorderLayout.NORTH);
 
-    // SCROLLPANE — clean, rounded interior
-    JScrollPane scroll = new JScrollPane(table);
-    scroll.setBorder(new EmptyBorder(0,0,0,0));
-    scroll.getViewport().setBackground(Color.WHITE);
-    scroll.setBackground(Color.WHITE);
+        String[] cols = {"Cashier Name", "Total Sales", "Transactions", "Avg Sale Value"};
+        Object[][] rows = {
+                {"Sarah Johnson", "$45,600", "218", "$194.87"},
+                {"Michael Chen", "$42,300", "234", "$194.04"},
+                {"Emily Davis", "$38,900", "201", "$193.53"},
+                {"James Wilson", "$35,200", "189", "$186.24"}
+        };
 
-    p.add(scroll, BorderLayout.CENTER);
+        JTable table = new JTable(new DefaultTableModel(rows, cols)) {
+            @Override
+            public boolean isCellEditable(int r, int c) { return false; }
+        };
 
-    return p;
-}
+        table.setRowHeight(36);
+        table.setFont(new Font("Segoe UI", Font.BOLD, 13));
+        table.setShowGrid(false);
+        table.setIntercellSpacing(new Dimension(0, 0));
+        table.setFillsViewportHeight(true);
+        table.setBackground(Color.WHITE);
 
-    // ---------------- Utility: stat card, chart placeholder, base card ----------------
+        JTableHeader header = table.getTableHeader();
+        header.setPreferredSize(new Dimension(header.getWidth(), 34));
+        header.setFont(new Font("Segoe UI", Font.BOLD, 18));
+        header.setBackground(new Color(245, 248, 252));   
+        header.setForeground(Color.BLACK);
+        header.setBorder(new EmptyBorder(6, 10, 6, 10));
+
+        DefaultTableCellRenderer center = new DefaultTableCellRenderer();
+        center.setHorizontalAlignment(JLabel.CENTER);
+
+        table.getColumnModel().getColumn(0).setCellRenderer(center); 
+        table.getColumnModel().getColumn(1).setCellRenderer(center); 
+        table.getColumnModel().getColumn(2).setCellRenderer(center); 
+        table.getColumnModel().getColumn(3).setCellRenderer(center); 
+
+        JScrollPane scroll = new JScrollPane(table);
+        scroll.setBorder(new EmptyBorder(0,0,0,0));
+        scroll.getViewport().setBackground(Color.WHITE);
+        scroll.setBackground(Color.WHITE);
+
+        p.add(scroll, BorderLayout.CENTER);
+
+        return p;
+    }
+
     private JPanel statCard(String title, String value, String foot) {
 
         JPanel card = new JPanel(new BorderLayout()) {
@@ -697,9 +641,6 @@ class RoundedBorder implements Border {
         card.setOpaque(false);
         card.setBorder(new EmptyBorder(12,12,12,12));
 
-        // -----------------------------------------------------
-        // TOP ROW: Title (left) + ↗ icon (right)
-        // -----------------------------------------------------
         JPanel topRow = new JPanel(new BorderLayout());
         topRow.setOpaque(false);
 
@@ -709,14 +650,11 @@ class RoundedBorder implements Border {
         JLabel icon = new JLabel("↗");
         icon.setFont(new Font("Segoe UI", Font.BOLD, 14));
         icon.setBorder(new EmptyBorder(0,0,0,0));
-        icon.setForeground(new Color(40, 120, 40)); // green-ish increase color
+        icon.setForeground(new Color(40, 120, 40)); 
 
         topRow.add(lblTitle, BorderLayout.WEST);
         topRow.add(icon, BorderLayout.EAST);
 
-        // -----------------------------------------------------
-        // CENTERED VALUE AND FOOTER
-        // -----------------------------------------------------
         JPanel centerPanel = new JPanel();
         centerPanel.setLayout(new BoxLayout(centerPanel, BoxLayout.Y_AXIS));
         centerPanel.setOpaque(false);
@@ -735,7 +673,6 @@ class RoundedBorder implements Border {
         centerPanel.add(lblValue);
         centerPanel.add(lblFoot);
 
-        // assemble
         card.add(topRow, BorderLayout.NORTH);
         card.add(centerPanel, BorderLayout.CENTER);
 
@@ -767,7 +704,6 @@ class RoundedBorder implements Border {
         JPanel p = new JPanel(new BorderLayout());
         p.setOpaque(false);
 
-        // create an inner white rounded panel to mimic screenshot rounded card
         JPanel inner = new JPanel(new BorderLayout()) {
             @Override
             protected void paintComponent(Graphics g) {
@@ -785,7 +721,6 @@ class RoundedBorder implements Border {
 
         p.add(inner, BorderLayout.CENTER);
 
-        // return the white rounded panel for direct content insertion
         return inner;
     }
         private JPanel currentTab = null;
@@ -802,7 +737,6 @@ class RoundedBorder implements Border {
         }
 
     private JPanel makeTab(String name, boolean active) {
-
     JPanel tab = new JPanel() {
         @Override
         protected void paintComponent(Graphics g) {
@@ -825,11 +759,7 @@ class RoundedBorder implements Border {
     lbl.setFont(new Font("Segoe UI", Font.BOLD, 13));
     lbl.setForeground(Color.BLACK);
     tab.add(lbl);
-
-    // Initial background
     tab.setBackground(active ? tabActive : tabNormal);
-
-    // ✔ FIXED HOVER LOGIC
     tab.addMouseListener(new java.awt.event.MouseAdapter() {
         @Override
         public void mouseEntered(java.awt.event.MouseEvent e) {
