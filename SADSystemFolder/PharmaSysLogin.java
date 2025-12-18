@@ -11,52 +11,46 @@ public class PharmaSysLogin extends JFrame {
 
     private enum Mode { LOGIN, REGISTER }
 
-    // Shared UI pieces (card content)
     private final JPanel card;
     private final JLabel topTitle;
     private final JLabel topSub;
 
-    // Username
     private final JPanel userLabelRow;
     private final JTextField usernameField;
     private final Component vStrutBeforeUser;
 
-    // Password
     private final JPanel passLabelRow;
     private final JPasswordField passwordField;
     private final JPanel passRow;
     private final JButton toggleEyeBtn;
     private final Component vStrutBeforePass;
 
-    // Confirm (register only)
     private final JPanel conLabelRow;
     private final JPasswordField confirmField;
     private final JPanel conRow;
     private final JButton toggleConfirmEyeBtn;
     private final Component vStrutBeforeConfirm;
 
-    // Remember (login only)
     private final JPanel optionsRow;
     private final JCheckBox rememberMe;
 
-    // Buttons
     private final JButton loginBtn;
     private final JButton createBtn;
     private final JPanel createRowLink;
 
-    // Back link for register mode
     private final JLabel backToLoginLink;
 
-    // Colors
     private final Color bgBlue = new Color(79, 107, 201);
     private final Color cardBg = new Color(236, 243, 249);
     private final Color fieldBorder = new Color(185, 205, 250);
     private final Color actionBtnColor = new Color(25, 52, 214);
 
-    // State
     private Mode mode = Mode.LOGIN;
+    private final Map<String, String> accounts = new HashMap<>();
 
     public PharmaSysLogin() {
+
+        accounts.put("admin", "1234");
         setTitle("PharmaSys - Login");
         setSize(900, 600);
         setLocationRelativeTo(null);
@@ -71,34 +65,30 @@ public class PharmaSysLogin extends JFrame {
         header.setOpaque(false);
         header.setLayout(new BoxLayout(header, BoxLayout.Y_AXIS));
 
-        // ---- LOGO IMAGE ----
-        ImageIcon rawLogo = new ImageIcon(getClass().getResource("/SAD/img/Login (1).jpg"));
+        ImageIcon rawLogo = new ImageIcon(getClass().getResource("/img/Login (1).jpg"));
         Image scaledLogoImg = rawLogo.getImage().getScaledInstance(90, 70, Image.SCALE_SMOOTH);
         ImageIcon scaledLogo = new ImageIcon(scaledLogoImg);
 
         JLabel logoImage = new JLabel(scaledLogo);
         logoImage.setAlignmentX(Component.CENTER_ALIGNMENT);
 
-        // ---- TITLE ----
         JLabel logo = new JLabel("PharmaSys");
         logo.setForeground(Color.WHITE);
         logo.setFont(new Font("Segoe UI", Font.BOLD, 26));
         logo.setAlignmentX(Component.CENTER_ALIGNMENT);
 
-        // ---- SUBTITLE ----
         JLabel subtitleLabel = new JLabel("Pharmacy Management System");
         subtitleLabel.setForeground(Color.BLACK);
         subtitleLabel.setFont(new Font("Segoe UI", Font.PLAIN, 14));
         subtitleLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
 
-        // Add components to header
-        header.add(Box.createVerticalStrut(30));  // top spacing
+        header.add(Box.createVerticalStrut(30));  
         header.add(logoImage);
-        header.add(Box.createVerticalStrut(-5));   // between image & title
+        header.add(Box.createVerticalStrut(-5));   
         header.add(logo);
-        header.add(Box.createVerticalStrut(0));   // between title & subtitle
+        header.add(Box.createVerticalStrut(0));   
         header.add(subtitleLabel);
-        header.add(Box.createVerticalStrut(0));  // spacing between header and login card
+        header.add(Box.createVerticalStrut(0));  
 
 
         background.add(header, BorderLayout.NORTH);
@@ -125,7 +115,6 @@ public class PharmaSysLogin extends JFrame {
         card.add(topSub);
         card.add(Box.createVerticalStrut(20));
 
-        // Register-mode spacing struts
         vStrutBeforeUser = Box.createVerticalStrut(30);
         vStrutBeforeUser.setVisible(false);
         card.add(vStrutBeforeUser);
@@ -144,33 +133,10 @@ public class PharmaSysLogin extends JFrame {
                 new EmptyBorder(5, 0, 5, 8)
         ));
 
-        final String userPlaceholder = "Enter your username";
-        usernameField.setText(userPlaceholder);
-        usernameField.setForeground(Color.GRAY);
-        final boolean[] showingUsernamePlaceholder = { true };
-        usernameField.addKeyListener(new KeyAdapter() {
-            @Override
-            public void keyPressed(KeyEvent e) {
-                if (showingUsernamePlaceholder[0]) {
-                    usernameField.setText("");
-                    usernameField.setForeground(Color.BLACK);
-                    showingUsernamePlaceholder[0] = false;
-                }
-            }
-        });
-        usernameField.addFocusListener(new FocusAdapter() {
-            @Override
-            public void focusLost(FocusEvent e) {
-                if (usernameField.getText().isEmpty()) {
-                    usernameField.setText(userPlaceholder);
-                    usernameField.setForeground(Color.GRAY);
-                    showingUsernamePlaceholder[0] = true;
-                }
-            }
-        });
         usernameField.setMaximumSize(new Dimension(400, 40));
         usernameField.setPreferredSize(new Dimension(400, 40));
         card.add(usernameField);
+        addPlaceholder(usernameField, "Enter your username");
         card.add(Box.createVerticalStrut(15));
 
         vStrutBeforePass = Box.createVerticalStrut(5);
@@ -187,9 +153,8 @@ public class PharmaSysLogin extends JFrame {
         passRow = new JPanel(new BorderLayout());
         passRow.setOpaque(false);
         passRow.setMaximumSize(new Dimension(400, 40));
-        passRow.setPreferredSize(new Dimension(400, 40
+        passRow.setPreferredSize(new Dimension(400, 40));
     
-        ));
         passRow.setBorder(BorderFactory.createCompoundBorder(
                 new RoundedBorder(18, fieldBorder),
                 new EmptyBorder(5, 0, 5, 8)
@@ -201,33 +166,6 @@ public class PharmaSysLogin extends JFrame {
         passwordField.setOpaque(false);
         passwordField.setEchoChar((char) 0);
 
-        final String passwordPlaceholder = "Enter your password";
-        passwordField.setText(passwordPlaceholder);
-        passwordField.setForeground(Color.GRAY);
-
-        final boolean[] showingPasswordPlaceholder = { true };
-        passwordField.addKeyListener(new KeyAdapter() {
-            @Override
-            public void keyPressed(KeyEvent e) {
-                if (showingPasswordPlaceholder[0]) {
-                    passwordField.setText("");
-                    passwordField.setForeground(Color.BLACK);
-                    passwordField.setEchoChar('•');
-                    showingPasswordPlaceholder[0] = false;
-                }
-            }
-        });
-        passwordField.addFocusListener(new FocusAdapter() {
-            @Override
-            public void focusLost(FocusEvent e) {
-                if (new String(passwordField.getPassword()).isEmpty()) {
-                    passwordField.setText(passwordPlaceholder);
-                    passwordField.setForeground(Color.GRAY);
-                    passwordField.setEchoChar((char) 0);
-                    showingPasswordPlaceholder[0] = true;
-                }
-            }
-        });
 
         toggleEyeBtn = new JButton("       👁");
         toggleEyeBtn.setFocusable(false);
@@ -236,13 +174,16 @@ public class PharmaSysLogin extends JFrame {
         toggleEyeBtn.setOpaque(false);
         toggleEyeBtn.setPreferredSize(new Dimension(35, 35));
         toggleEyeBtn.addActionListener(e -> {
-            if (!showingPasswordPlaceholder[0]) {
-                if (passwordField.getEchoChar() == '•') passwordField.setEchoChar((char) 0);
-                else passwordField.setEchoChar('•');
+            if (passwordField.getEchoChar() == '•') {
+                passwordField.setEchoChar((char) 0);
+            } else {
+                passwordField.setEchoChar('•');
             }
         });
 
+
         passRow.add(passwordField, BorderLayout.CENTER);
+        addPlaceholder(passwordField, "Enter your password");
         passRow.add(toggleEyeBtn, BorderLayout.EAST);
         card.add(passRow);
         card.add(Box.createVerticalStrut(5));
@@ -345,25 +286,33 @@ public class PharmaSysLogin extends JFrame {
         });
 
         loginBtn.addActionListener(e -> {
-            String username = usernameField.getText().trim();
-            String password = new String(passwordField.getPassword());
+        String username = usernameField.getText().trim();
+        String password = new String(passwordField.getPassword());
 
-            if (username.equals("  Enter your username") || username.isEmpty()) username = "";
-            if (password.equals("  Enter your password") || password.isEmpty()) password = "";
+        if (username.equals("Enter your username") || username.isEmpty()) username = "";
+        if (password.equals("Enter your password") || password.isEmpty()) password = "";
 
-            String validUser = "admin";
-            String validPass = "1234";
+        if (username.isEmpty() || password.isEmpty()) {
+            JOptionPane.showMessageDialog(this,
+                    "Please enter username and password.",
+                    "Missing Information",
+                    JOptionPane.WARNING_MESSAGE);
+            return;
+        }
 
-            if (username.equals(validUser) && password.equals(validPass)) {
-                new PharmaSysDashboard().setVisible(true);
-                dispose();
-            } else {
-                JOptionPane.showMessageDialog(this,
-                        "Invalid username or password!",
-                        "Login Failed",
-                        JOptionPane.ERROR_MESSAGE);
-            }
-        });
+        if (accounts.containsKey(username) &&
+            accounts.get(username).equals(password)) {
+
+            new PharmaSysDashboard().setVisible(true);
+            dispose();
+
+        } else {
+            JOptionPane.showMessageDialog(this,
+                    "Invalid username or password!",
+                    "Login Failed",
+                    JOptionPane.ERROR_MESSAGE);
+        }
+    });
 
         card.add(loginBtn);
         card.add(Box.createVerticalStrut(20));
@@ -520,38 +469,55 @@ public class PharmaSysLogin extends JFrame {
 
         backToLoginLink.setVisible(false);
 
-        usernameField.setText("  Enter your username");
-        usernameField.setForeground(Color.GRAY);
-        passwordField.setText("  Enter your password");
-        passwordField.setForeground(Color.GRAY);
-        passwordField.setEchoChar((char) 0);
+        addPlaceholder(usernameField, "Enter your username");
+        addPlaceholder(passwordField, "Enter your password");
 
         revalidate();
         repaint();
     }
 
-    private void handleCreateAccount() {
+        private void handleCreateAccount() {
         String u = usernameField.getText().trim();
         String p = new String(passwordField.getPassword());
         String c = new String(confirmField.getPassword());
 
-        if (u.equals("  Enter your username")) u = "";
-        if (p.equals("  Enter your password")) p = "";
-        if (c.equals("Re-enter password...") || c.equals("  Re-enter password")) c = "";
+        if (u.equals("Enter your username")) u = "";
+        if (p.equals("Enter your password")) p = "";
+        if (c.equals("Re-enter password...")) c = "";
 
         if (u.isEmpty() || p.isEmpty() || c.isEmpty()) {
-            JOptionPane.showMessageDialog(this, "Please fill out all fields!");
-            return;
-        }
-        if (!p.equals(c)) {
-            JOptionPane.showMessageDialog(this, "Passwords do not match!");
+            JOptionPane.showMessageDialog(this,
+                    "Please fill out all fields!",
+                    "Incomplete Form",
+                    JOptionPane.WARNING_MESSAGE);
             return;
         }
 
-        JOptionPane.showMessageDialog(this, "Account Created!\nUsername: " + u);
+        if (!p.equals(c)) {
+            JOptionPane.showMessageDialog(this,
+                    "Passwords do not match!",
+                    "Error",
+                    JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
+        if (accounts.containsKey(u)) {
+            JOptionPane.showMessageDialog(this,
+                    "Username already exists!",
+                    "Error",
+                    JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
+        accounts.put(u, p);
+
+        JOptionPane.showMessageDialog(this,
+                "Account successfully created!\nPlease log in.",
+                "Success",
+                JOptionPane.INFORMATION_MESSAGE);
+
         switchToLogin();
     }
-
     private JPanel createInputField(JComponent input, Color borderColor, int radius) {
         JPanel row = new JPanel(new BorderLayout());
         row.setOpaque(false);
@@ -584,28 +550,33 @@ public class PharmaSysLogin extends JFrame {
     }
 
     private void addPlaceholder(JTextComponent field, String placeholder) {
-        field.setForeground(Color.GRAY);
-        field.setText(placeholder);
+    field.setText(placeholder);
+    field.setForeground(Color.GRAY);
 
-        field.addFocusListener(new FocusAdapter() {
-            public void focusGained(FocusEvent e) {
-                if (field.getText().equals(placeholder)) {
-                    field.setText("");
-                    field.setForeground(Color.BLACK);
-                    if (field instanceof JPasswordField) ((JPasswordField) field).setEchoChar('•');
+    field.addFocusListener(new FocusAdapter() {
+        @Override
+        public void focusGained(FocusEvent e) {
+            if (field.getText().equals(placeholder)) {
+                field.setText("");
+                field.setForeground(Color.BLACK);
+                if (field instanceof JPasswordField) {
+                    ((JPasswordField) field).setEchoChar('•');
                 }
             }
+        }
 
-            public void focusLost(FocusEvent e) {
-                if (field.getText().isEmpty()) {
-                    field.setForeground(Color.GRAY);
-                    field.setText(placeholder);
-                    if (field instanceof JPasswordField) ((JPasswordField) field).setEchoChar((char) 0);
+        @Override
+        public void focusLost(FocusEvent e) {
+            if (field.getText().isEmpty()) {
+                field.setText(placeholder);
+                field.setForeground(Color.GRAY);
+                if (field instanceof JPasswordField) {
+                    ((JPasswordField) field).setEchoChar((char) 0);
                 }
             }
-        });
-    }
-
+        }
+    });
+}
     private void styleField(JTextField field, Color borderColor) {
         field.setMaximumSize(new Dimension(340, 35));
         field.setPreferredSize(new Dimension(340, 35));
@@ -634,9 +605,6 @@ public class PharmaSysLogin extends JFrame {
     }
 }
 
-// ----------------------------------------------------
-// ROUNDED PANEL
-// ----------------------------------------------------
 class RoundedPanel extends JPanel {
     private int cornerRadius;
 
@@ -658,9 +626,6 @@ class RoundedPanel extends JPanel {
     }
 }
 
-// ----------------------------------------------------
-// ROUNDED BORDER
-// ----------------------------------------------------
 class RoundedBorder implements javax.swing.border.Border {
     private final int radius;
     private final Color color;
