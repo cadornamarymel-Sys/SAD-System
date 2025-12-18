@@ -14,11 +14,10 @@ public class PharmaSysSales extends JPanel {
     Color cardGray = new Color(236, 243, 249);
     Color blue = new Color(25, 52, 214);
 
-    // ================= CART SYSTEM ================= //
     private List<CartItem> cart = new ArrayList<>();
 
     private ImageIcon loadIcon(String fileName) {
-    return new ImageIcon(getClass().getResource("/SAD/img/" + fileName));
+    return new ImageIcon(getClass().getResource("/img/" + fileName));
 }
     private static class CartItem {
         String name;
@@ -36,7 +35,6 @@ public class PharmaSysSales extends JPanel {
         }
     }
 
-    // Rounded border for text fields
     private static class RoundedFieldBorder extends LineBorder {
 
         private final int radius;
@@ -63,7 +61,6 @@ public class PharmaSysSales extends JPanel {
         }
     }
 
-    // ===== Instance fields needed across methods =====
     private JPanel cartList;
     private JLabel subtotalLabelRight;
     private JLabel vatLabelRight;
@@ -76,7 +73,6 @@ public class PharmaSysSales extends JPanel {
         setLayout(new BorderLayout());
         setOpaque(false);
 
-        //---------------- HEADER ----------------//
         JPanel header = new JPanel();
         header.setLayout(new BoxLayout(header, BoxLayout.Y_AXIS));
         header.setOpaque(false);
@@ -93,11 +89,9 @@ public class PharmaSysSales extends JPanel {
         header.add(Box.createVerticalStrut(2));
         header.add(subtitle);
 
-        //---------------- TOP ROW ----------------//
         JPanel topRow = new JPanel(new GridLayout(1, 2, 20, 0));
         topRow.setOpaque(false);
 
-        // SEARCH CARD
         JPanel searchCard = cardPanel("Shopping Cart");
         JTextField searchField = new JTextField(" Search medicine by name...");
         searchField.setForeground(Color.GRAY);
@@ -133,7 +127,6 @@ public class PharmaSysSales extends JPanel {
 
         searchCard.add(searchWrap, BorderLayout.SOUTH);
 
-        // CUSTOMER CARD
         JPanel customerCard = cardPanel("Customer Details");
         JPanel customerBox = new JPanel();
         customerBox.setLayout(new BoxLayout(customerBox, BoxLayout.Y_AXIS));
@@ -186,11 +179,9 @@ public class PharmaSysSales extends JPanel {
         topRow.add(searchCard);
         topRow.add(customerCard);
 
-        //---------------- BOTTOM ROW ----------------//
         JPanel bottomRow = new JPanel(new GridLayout(1, 2, 20, 0));
         bottomRow.setOpaque(false);
 
-        // CART CARD
         cartCard = cardPanel("Shopping Cart (0 items)");
         cartList = new JPanel();
         cartList.setLayout(new BoxLayout(cartList, BoxLayout.Y_AXIS));
@@ -203,7 +194,6 @@ public class PharmaSysSales extends JPanel {
 
         cartCard.add(cartScroll, BorderLayout.CENTER);
 
-        // PAYMENT CARD
         JPanel paymentCard = cardPanel("Payment Summary");
         paymentCard.setBackground(new Color(236, 243, 249));
         paymentCard.setBorder(new EmptyBorder(12, 14, 14, 14));
@@ -228,7 +218,6 @@ public class PharmaSysSales extends JPanel {
         sep.setForeground(new Color(200, 208, 220));
         summary.add(sep);
 
-        // Total row
         JPanel totalRow = new JPanel(new BorderLayout());
         totalRow.setOpaque(false);
 
@@ -247,10 +236,8 @@ public class PharmaSysSales extends JPanel {
         summary.add(totalRow);
         summary.add(Box.createVerticalStrut(12));
 
-        // Payment method
         JComboBox<String> pay = new JComboBox<>();
         pay.addItem("Cash");
-        pay.addItem("GCash");
         pay.setBackground(new Color(236, 243, 249));
         pay.setBorder(new LineBorder(Color. GRAY, 1, true));
         pay.setPreferredSize(new Dimension(0, 32));
@@ -281,11 +268,10 @@ public class PharmaSysSales extends JPanel {
 
         summary.add(Box.createVerticalStrut(15));
 
-        // Complete sale button
         complete = new JButton("Complete Sale - ₱0.00");
         complete.setIcon(loadIcon("complete sale.png"));
         complete.setHorizontalAlignment(SwingConstants.LEFT);
-        complete.setIconTextGap(10); // space between icon & text
+        complete.setIconTextGap(10); 
         complete.setBackground(blue);
         complete.setForeground(Color.BLACK);
         complete.setFocusPainted(false);
@@ -318,7 +304,6 @@ public class PharmaSysSales extends JPanel {
             refreshCart();
         });
 
-        // Print receipt button
         JButton print = new JButton("Print Receipt");
         print.setIcon(loadIcon("printer.png"));
         print.setHorizontalAlignment(SwingConstants.LEFT);
@@ -343,26 +328,21 @@ public class PharmaSysSales extends JPanel {
             );
         });
 
-        // Wrap buttons in a left-aligned panel
         JPanel buttonPanel = new JPanel();
         buttonPanel.setLayout(new BoxLayout(buttonPanel, BoxLayout.Y_AXIS));
         buttonPanel.setOpaque(false);
 
-        // Pull panel 14px to the left to match card edge
         buttonPanel.setBorder(new EmptyBorder(0, 0, 0, 0));
 
-        // Complete sale button
         complete.setAlignmentX(Component.LEFT_ALIGNMENT);
         complete.setMaximumSize(new Dimension(Integer.MAX_VALUE, 44));
         buttonPanel.add(complete);
         buttonPanel.add(Box.createVerticalStrut(12));
 
-        // Print receipt button
         print.setAlignmentX(Component.LEFT_ALIGNMENT);
         print.setMaximumSize(new Dimension(Integer.MAX_VALUE, 44));
         buttonPanel.add(print);
 
-        // Add to summary
         summary.add(buttonPanel);
 
         paymentCard.add(summary, BorderLayout.CENTER);
@@ -371,14 +351,12 @@ public class PharmaSysSales extends JPanel {
         bottomRow.add(cartCard);
         bottomRow.add(paymentCard);
 
-        //---------------- SIZES ----------------//
         searchCard.setPreferredSize(new Dimension(500, 135));
         customerCard.setPreferredSize(new Dimension(500, 135));
 
         cartCard.setPreferredSize(new Dimension(500, 320));
         paymentCard.setPreferredSize(new Dimension(500, 400));
 
-        //---------------- BODY ----------------//
         JPanel body = new JPanel();
         body.setLayout(new BoxLayout(body, BoxLayout.Y_AXIS));
         body.setOpaque(false);
@@ -400,7 +378,6 @@ public class PharmaSysSales extends JPanel {
 
         add(wrapper, BorderLayout.CENTER);
 
-        //---------------- SEARCH FUNCTION ----------------//
         searchField.addActionListener(e -> {
             String query = searchField.getText().trim();
 
@@ -423,12 +400,9 @@ public class PharmaSysSales extends JPanel {
                 JOptionPane.showMessageDialog(this, "No result found");
             }
         });
-
-        // Initial refresh
         refreshCart();
     }
 
-    // ================= HELPERS ================= //
 
     private JPanel cardPanel(String title) {
 
